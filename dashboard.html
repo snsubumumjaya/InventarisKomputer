@@ -164,14 +164,16 @@
       </div>
     </div>
 
-    <!-- KELOLA KATEGORI (ADMIN ONLY) -->
+    <!-- KELOLA KATEGORI -->
     <div id="kategori" class="content">
       <h2>KELOLA<br>KATEGORI</h2>
       <div class="form-box">
         <input type="text" id="newKategori" placeholder="NAMA KATEGORI BARU">
         <button class="btn" onclick="tambahKategori()">+ TAMBAH KATEGORI</button>
       </div>
-      <div class="kategori-list" id="daftarKategori"></div>
+      <div class="kategori-list" id="daftarKategori">
+        <!-- ISI OTOMATIS -->
+      </div>
     </div>
 
   </div>
@@ -183,6 +185,9 @@
   <script>
     firebase.initializeApp({apiKey:"AIzaSyCGyH-yVAgQU4iJ1tIz3cpWiWa65BdMsJ8",authDomain:"inventariskomputer.firebaseapp.com",databaseURL:"https://inventariskomputer-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"inventariskomputer",storageBucket:"inventariskomputer.firebasestorage.app",messagingSenderId:"915927761008",appId:"1:915927761008:web:a4b2e71159d00501fdf4b5"});
     const auth=firebase.auth();const db=firebase.database();let role='staff',ek=null;
+
+    // DEFAULT KATEGORI (otomatis masuk kalau database kosong)
+    const defaultKategori = ["Laptop","PC Desktop","Monitor","Printer","Aksesoris","Jaringan","Lainnya"];
 
     auth.onAuthStateChanged(u=>{
       if(!u) location.href="login.html";
@@ -197,47 +202,66 @@
       });
     });
 
-    // LOAD KATEGORI
+    // LOAD KATEGORI + BUAT DEFAULT KALAU KOSONG
     function loadKategori(){
       const select = document.getElementById('kategori');
       const list = document.getElementById('daftarKategori');
-      select.innerHTML = '<option value="">— PILIH KATEGORI —</option>';
-      list.innerHTML = '';
       
-      db.ref('kategori').on('value', snap=>{
-        const data = snap.val() || {};
-        Object.keys(data).sort().forEach(key=>{
-          const nama = data[key].nama;
-          // dropdown
-          const opt = document.createElement('option');
-          opt.value = nama; opt.textContent = nama;
-          select.appendChild(opt);
-          // list kelola kategori
-          const div = document.createElement('div');
-          div.className = 'kategori-item';
-          div.innerHTML = `
-            <span>${nama}</span>
-            <div>
+      db.ref('kategori').once('value').then(snap=>{
+        let data = snap.val();
+        
+        // Kalau kosong, isi default
+        if(!data || Object.keys(data).length === 0){
+          defaultKategori.forEach(nama=>{
+            db.ref('kategori').push({nama});
+          });
+        }
+
+        // Kosongkan dulu
+        select.innerHTML = '<option value="">— PILIH KATEGORI —</option>';
+        list.innerHTML = '<p style="opacity:0.5">Loading kategori...</p>';
+
+        // Load real-time
+        db.ref('kategori').on('value', snap2=>{
+          const data2 = snap2.val() || {};
+          select.innerHTML = '<option value="">— PILIH KATEGORI —</option>';
+          list.innerHTML = '';
+          
+          Object.keys(data2).forEach(key=>{
+            const nama = data2[key].nama;
+            // Dropdown
+            const opt = document.createElement('option');
+            opt.value = nama; opt.textContent = nama.toUpperCase();
+            select.appendChild(opt);
+            
+            // List kelola kategori
+            const div = document.createElement('div');
+            div.className = 'kategori-item';
+            div.innerHTML = `
+              <span>${nama.toUpperCase()}</span>
               <button class="btn btn-small" style="background:#ff0000" onclick="hapusKategori('${key}')">HAPUS</button>
-            </div>
-          `;
-          list.appendChild(div);
+            `;
+            list.appendChild(div);
+          });
+          
+          if(Object.keys(data2).length === 0){
+            list.innerHTML = '<p style="opacity:0.5">Belum ada kategori. Tambah di atas!</p>';
+          }
         });
       });
     }
 
     function tambahKategori(){
-      const input = document.getElementById('newKategori');
-      const nama = input.value.trim();
+      const nama = document.getElementById('newKategori').value.trim();
       if(!nama) return alert('Isi nama kategori!');
       db.ref('kategori').push({nama}).then(()=>{
-        alert('Kategori ditambahkan!');
-        input.value = '';
+        alert('Kategori "'+nama+'" ditambahkan!');
+        document.getElementById('newKategori').value = '';
       });
     }
 
     function hapusKategori(key){
-      if(confirm('Hapus kategori ini? Semua barang dengan kategori ini akan jadi "LAINNYA"')){
+      if(confirm('Hapus kategori ini?')){
         db.ref('kategori/'+key).remove();
       }
     }
@@ -250,8 +274,7 @@
         if(m.onclick && m.onclick.toString().includes(p)) m.classList.add('active');
       });
       if(p==='assets') loadTable();
-      if(p==='add') clearForm();
-      if(p==='kategori') loadKategori();
+      if(p==='add' || p==='kategori') loadKategori();
     }
 
     function loadTable(){
@@ -309,8 +332,8 @@
       db.ref('inventaris/'+k).set(d).then(()=>{alert('SAVED');showPage('assets');});
     }
 
-    // Auto load kategori saat buka halaman add/kategori
-    document.addEventListener('DOMContentLoaded', loadKategori);
+    // Load kategori saat halaman dibuka
+    loadKategori();
   </script>
 </body>
 </html>
