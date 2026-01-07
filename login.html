@@ -1,51 +1,33 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login</title>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LOGIN</title>
+  <link rel="stylesheet" href="style.css">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <style>
-    body{background:#f0f2f5;display:flex;height:100vh;align-items:center;justify-content:center;margin:0;font-family:Arial}
-    .box{background:white;padding:40px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:90%;max-width:400px}
-    input,button{width:100%;padding:14px;margin:10px 0;border-radius:8px;border:1px solid #ddd;font-size:16px}
-    button{background:#1877f2;color:white;border:none;cursor:pointer}
-    button:hover{background:#166fe5}
-  </style>
 </head>
 <body>
-  <div class="box">
-    <h2 style="text-align:center">Login Inventaris</h2>
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Password" required />
-    <button onclick="login()">Login</button>
-    <p style="text-align:center">Belum punya akun? <a href="register.html">Register</a></p>
-    <p id="msg" style="color:red;text-align:center"></p>
+  <div class="container">
+    <h1>Login<br>Inventaris</h1>
+    <div class="auth-box">
+      “ACCESS DATABASE”<br><br>
+      <input type="email" id="email" placeholder="EMAIL ADDRESS">
+      <input type="password" id="password" placeholder="PASSWORD">
+      <button onclick="login()">ENTER SYSTEM</button>
+      <p style="text-align:center;margin-top:50px;opacity:0.5;font-size:14px">
+        NO ACCOUNT? <a href="register.html" style="color:#fff;text-decoration:underline">CREATE ONE</a>
+      </p>
+      <p id="msg" style="color:#ff0000;margin-top:30px;font-size:14px"></p>
+    </div>
   </div>
+  <div class="footer-text">SNSU BUMUM JAYA © 2025 – ALL RIGHTS RESERVED</div>
 
   <script>
-    const firebaseConfig = { /* sama seperti di atas */ 
-      apiKey: "AIzaSyCGyH-yVAgQU4iJ1tIz3cpWiWa65BdMsJ8",
-      authDomain: "inventariskomputer.firebaseapp.com",
-      databaseURL: "https://inventariskomputer-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "inventariskomputer",
-      storageBucket: "inventariskomputer.firebasestorage.app",
-      messagingSenderId: "915927761008",
-      appId: "1:915927761008:web:a4b2e71159d00501fdf4b5"
-    };
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp({apiKey:"AIzaSyCGyH-yVAgQU4iJ1tIz3cpWiWa65BdMsJ8",authDomain:"inventariskomputer.firebaseapp.com",databaseURL:"https://inventariskomputer-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"inventariskomputer",storageBucket:"inventariskomputer.firebasestorage.app",messagingSenderId:"915927761008",appId:"1:915927761008:web:a4b2e71159d00501fdf4b5"});
     const auth = firebase.auth();
-
-    function login() {
-      const email = document.getElementById('email').value;
-      const pass = document.getElementById('password').value;
-      auth.signInWithEmailAndPassword(email, pass)
-        .then(() => location.href = "dashboard.html")
-        .catch(e => document.getElementById('msg').innerText = e.message);
-    }
-
-    auth.onAuthStateChanged(user => { if (user) location.href = "dashboard.html"; });
+    function login(){auth.signInWithEmailAndPassword(document.getElementById('email').value,document.getElementById('password').value).then(()=>location.href="dashboard.html").catch(e=>document.getElementById('msg').innerText=e.message);}
+    auth.onAuthStateChanged(u=>{if(u)location.href="dashboard.html"});
   </script>
 </body>
 </html>
