@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LOGIN</title>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LOGIN</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
   <style>
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'Helvetica Neue',sans-serif;background:#fff;color:#000;min-height:100vh;padding:100px 40px;
@@ -19,6 +21,7 @@
     button{width:100%;padding:28px;background:#000;color:#fff;font-weight:900;font-size:20px;text-transform:uppercase;letter-spacing:5px;border:none;cursor:pointer;transition:.4s}
     button:hover{background:#ff0000;color:#fff}
     a{color:#000;text-decoration:underline}
+    #msg{color:#ff0000;margin-top:30px;text-align:center;font-weight:700}
   </style>
 </head>
 <body>
@@ -31,17 +34,59 @@
     <p style="text-align:center;margin-top:50px;opacity:0.6;font-size:14px">
       NO ACCOUNT? <a href="register.html">CREATE ONE</a>
     </p>
-    <p id="msg" style="color:#ff0000;margin-top:30px;text-align:center"></p>
+    <p id="msg"></p>
   </div>
   <div style="margin-top:200px;text-align:center;font-size:12px;letter-spacing:8px;opacity:0.5;padding:40px 0;border-top:1px solid #ccc">
     SN SUB UMUM ©2026 – ALL RIGHTS RESERVED
   </div>
-
   <script>
-    firebase.initializeApp({apiKey:"AIzaSyCGyH-yVAgQU4iJ1tIz3cpWiWa65BdMsJ8",authDomain:"inventariskomputer.firebaseapp.com",databaseURL:"https://inventariskomputer-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"inventariskomputer",storageBucket:"inventariskomputer.firebasestorage.app",messagingSenderId:"915927761008",appId:"1:915927761008:web:a4b2e71159d00501fdf4b5"});
-    const auth=firebase.auth();
-    function login(){auth.signInWithEmailAndPassword(document.getElementById('email').value,document.getElementById('password').value).then(()=>location.href="dashboard.html").catch(e=>document.getElementById('msg').innerText=e.message);}
-    auth.onAuthStateChanged(u=>{if(u)location.href="dashboard.html"});
+    const firebaseConfig = {
+      apiKey: "AIzaSyCGyH-yVAgQU4iJ1tIz3cpWiWa65BdMsJ8",
+      authDomain: "inventariskomputer.firebaseapp.com",
+      databaseURL: "https://inventariskomputer-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "inventariskomputer",
+      storageBucket: "inventariskomputer.firebasestorage.app",
+      messagingSenderId: "915927761008",
+      appId: "1:915927761008:web:a4b2e71159d00501fdf4b5"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    function login() {
+      const msg = document.getElementById('msg');
+      msg.innerText = '';
+      const email = document.getElementById('email').value.trim();
+      const pass = document.getElementById('password').value;
+
+      if (!email || !pass) {
+        return msg.innerText = "ISI EMAIL DAN PASSWORD!";
+      }
+
+      auth.signInWithEmailAndPassword(email, pass)
+        .then(userCredential => {
+          const user = userCredential.user;
+          if (!user.emailVerified) {
+            auth.signOut(); // Paksa logout kalau belum verified
+            msg.innerText = "EMAIL BELUM DIVERIFIKASI!\nCek inbox/spam kamu dan klik link verifikasi dari Firebase.";
+            return;
+          }
+          // Kalau sudah verified → masuk dashboard
+          location.href = "dashboard.html";
+        })
+        .catch(error => {
+          msg.innerText = error.message;
+        });
+    }
+
+    // Kalau sudah authenticated (misal refresh), cek verified juga
+    auth.onAuthStateChanged(user => {
+      if (user && user.emailVerified) {
+        location.href = "dashboard.html";
+      } else if (user && !user.emailVerified) {
+        auth.signOut();
+        document.getElementById('msg').innerText = "EMAIL BELUM DIVERIFIKASI!\nCek inbox/spam dan klik link verifikasi.";
+      }
+    });
   </script>
 </body>
 </html>
