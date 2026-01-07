@@ -14,6 +14,8 @@ const auth = getAuth(app);
 
 const el = (id) => document.getElementById(id);
 
+const notice = el("notice");
+
 const tabLogin = el("tabLogin");
 const tabRegister = el("tabRegister");
 const panelLogin = el("panelLogin");
@@ -42,6 +44,11 @@ function showTab(which) {
 
   tabLogin.style.borderColor = isLogin ? "rgba(122,162,255,0.55)" : "rgba(255,255,255,0.10)";
   tabRegister.style.borderColor = !isLogin ? "rgba(122,162,255,0.55)" : "rgba(255,255,255,0.10)";
+}
+
+function getReason() {
+  const url = new URL(window.location.href);
+  return url.searchParams.get("reason") || "";
 }
 
 tabLogin.addEventListener("click", () => showTab("login"));
@@ -93,8 +100,7 @@ btnRegister.addEventListener("click", async () => {
     const cred = await createUserWithEmailAndPassword(auth, em, p1);
     regStatus.textContent = "Akun berhasil dibuat.";
 
-    const uid = cred.user.uid;
-    uidText.textContent = uid;
+    uidText.textContent = cred.user.uid;
     uidBox.hidden = false;
   } catch (e) {
     console.error(e);
@@ -111,7 +117,6 @@ btnCopyUid.addEventListener("click", async () => {
     btnCopyUid.textContent = "Copied";
     setTimeout(() => (btnCopyUid.textContent = "Copy"), 900);
   } catch {
-    // fallback: select manual
     alert("Tidak bisa copy otomatis. Silakan blok UID lalu copy manual.");
   }
 });
@@ -120,10 +125,25 @@ onAuthStateChanged(auth, (u) => {
   const loggedIn = !!u;
   btnLogout.disabled = !loggedIn;
 
+  const reason = getReason();
+  if (reason === "noaccess") {
+    notice.textContent = "Akun kamu belum diberi akses (belum terdaftar sebagai staff/admin). Silakan kirim UID ke admin.";
+  } else {
+    notice.textContent = "";
+  }
+
   if (loggedIn) {
     authStatus.textContent = `Login sebagai: ${u.email || u.uid}`;
+
+    // tampilkan UID jika ada kasus noaccess atau ada pending_uid
+    const pending = sessionStorage.getItem("pending_uid");
+    const uidToShow = pending || u.uid;
+
+    uidText.textContent = uidToShow;
+    uidBox.hidden = false;
   } else {
     authStatus.textContent = "Belum login.";
+    uidBox.hidden = true;
   }
 });
 
