@@ -1,31 +1,43 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LOGIN</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LOGIN</title>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Helvetica Neue',sans-serif;background:#000;color:#fff;min-height:100vh;padding:100px 40px;
+      background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);
+      background-size:40px 40px;position:relative}
+    body::before{content:"";position:fixed;inset:0;background:linear-gradient(#111 2px,transparent 2px),linear-gradient(90deg,#111 2px,transparent 2px);background-size:120px 120px;opacity:0.3;pointer-events:none}
+    h1{font-size:140px;font-weight:900;text-transform:uppercase;letter-spacing:-10px;line-height:0.8;margin-bottom:100px}
+    .box{max-width:600px;margin:0 auto;background:rgba(255,255,255,0.02);padding:120px 80px;border:2px solid rgba(255,255,255,0.2);position:relative}
+    .box::before{content:"“";position:absolute;top:-60px;left:40px;font-size:300px;opacity:0.08}
+    .box::after{content:"”";position:absolute;bottom:-80px;right:40px;font-size:300px;opacity:0.08}
+    input{width:100%;padding:30px 0;background:none;border:none;border-bottom:3px solid #333;color:#fff;font-size:22px;margin:50px 0;outline:none;transition:.4s}
+    input:focus{border-color:#fff}
+    button{width:100%;padding:28px;background:#fff;color:#000;font-weight:900;font-size:20px;text-transform:uppercase;letter-spacing:5px;border:none;cursor:pointer;transition:.4s}
+    button:hover{background:#ff0000;color:#fff}
+    .footer{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);font-size:12px;letter-spacing:10px;opacity:0.4}
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Login<br>Inventaris</h1>
-    <div class="auth-box">
-      “ACCESS DATABASE”<br><br>
-      <input type="email" id="email" placeholder="EMAIL ADDRESS">
-      <input type="password" id="password" placeholder="PASSWORD">
-      <button onclick="login()">ENTER SYSTEM</button>
-      <p style="text-align:center;margin-top:50px;opacity:0.5;font-size:14px">
-        NO ACCOUNT? <a href="register.html" style="color:#fff;text-decoration:underline">CREATE ONE</a>
-      </p>
-      <p id="msg" style="color:#ff0000;margin-top:30px;font-size:14px"></p>
-    </div>
+  <h1>Login<br>Inventaris</h1>
+  <div class="box">
+    “ACCESS DATABASE”<br><br>
+    <input type="email" id="email" placeholder="EMAIL ADDRESS">
+    <input type="password" id="password" placeholder="PASSWORD">
+    <button onclick="login()">ENTER SYSTEM</button>
+    <p style="text-align:center;margin-top:50px;opacity:0.6;font-size:14px">
+      NO ACCOUNT? <a href="register.html" style="color:#fff;text-decoration:underline">CREATE ONE</a>
+    </p>
+    <p id="msg" style="color:#ff0000;margin-top:30px;text-align:center"></p>
   </div>
-  <div class="footer-text">SNSU BUMUM JAYA © 2025 – ALL RIGHTS RESERVED</div>
+  <div class="footer">SNSU BUMUM JAYA © 2025</div>
 
   <script>
     firebase.initializeApp({apiKey:"AIzaSyCGyH-yVAgQU4iJ1tIz3cpWiWa65BdMsJ8",authDomain:"inventariskomputer.firebaseapp.com",databaseURL:"https://inventariskomputer-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"inventariskomputer",storageBucket:"inventariskomputer.firebasestorage.app",messagingSenderId:"915927761008",appId:"1:915927761008:web:a4b2e71159d00501fdf4b5"});
-    const auth = firebase.auth();
+    const auth=firebase.auth();
     function login(){auth.signInWithEmailAndPassword(document.getElementById('email').value,document.getElementById('password').value).then(()=>location.href="dashboard.html").catch(e=>document.getElementById('msg').innerText=e.message);}
     auth.onAuthStateChanged(u=>{if(u)location.href="dashboard.html"});
   </script>
