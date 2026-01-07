@@ -22,7 +22,7 @@
     button{width:100%;padding:28px;background:#000;color:#fff;font-weight:900;font-size:20px;text-transform:uppercase;letter-spacing:5px;border:none;cursor:pointer}
     button:hover{background:#ff0000;color:#fff}
     a{color:#000;text-decoration:underline}
-    #msg{color:#ff0000;margin-top:30px;text-align:center}
+    #msg{color:#ff0000;margin-top:30px;text-align:center;font-weight:700}
   </style>
 </head>
 <body>
@@ -69,7 +69,6 @@
         return msg.innerText = "PASSWORD MINIMAL 6 KARAKTER!";
       }
 
-      // Cek apakah ini user pertama (admin)
       db.ref('users').once('value').then(s => {
         const pertama = !s.exists() || Object.keys(s.val() || {}).length === 0;
         const role = pertama ? 'admin' : 'staff';
@@ -77,21 +76,19 @@
         auth.createUserWithEmailAndPassword(email, pass)
           .then(userCredential => {
             const user = userCredential.user;
-            // Simpan data user
             return db.ref('users/' + user.uid).set({
               nama: nama,
               email: email,
               role: role,
               createdAt: new Date().toISOString()
-            }).then(() => {
-              // Kirim email verifikasi
-              return user.sendEmailVerification();
-            }).then(() => {
-              alert(pertama 
-                ? "SELAMAT! KAMU ADMIN PERTAMA 🔥\nCek email untuk verifikasi akun." 
-                : "AKUN BERHASIL DIBUAT (STAFF)\nCek email untuk verifikasi akun.");
-              location.href = "login.html";
-            });
+            }).then(() => user.sendEmailVerification());
+          })
+          .then(() => auth.signOut())  // Sign out biar tidak otomatis login
+          .then(() => {
+            alert(pertama 
+              ? "SELAMAT! KAMU ADMIN PERTAMA 🔥\nAkun berhasil dibuat.\nCek email untuk verifikasi, lalu login." 
+              : "AKUN BERHASIL DIBUAT (STAFF)\nCek email untuk verifikasi, lalu login.");
+            location.href = "login.html";
           })
           .catch(error => {
             msg.innerText = error.message;
