@@ -39,7 +39,7 @@
     .menu-item{
       font-size:17px;font-weight:900;letter-spacing:-0.3px;margin:30px 0;
       cursor:pointer;transition:all .35s;opacity:0.8;padding-left:0;position:relative;
-      padding-bottom:8px; /* spasi buat garis di bawah */
+      padding-bottom:8px;
     }
     .menu-item:hover,.menu-item.active{
       opacity:1;
@@ -69,7 +69,7 @@
     .form-box{
       max-width:900px;background:#fafafa;padding:80px 100px;border:8px solid #000;margin:100px 0;
     }
-    .form-box input{
+    .form-box input, .form-box select, .form-box textarea{
       width:100%;padding:20px 0;background:none;border:none;border-bottom:5px solid #000;
       font-size:22px;margin:40px 0;outline:none;
     }
@@ -77,9 +77,10 @@
     /* BUTTON */
     .btn{
       padding:16px 55px;background:#000;color:#fff;font-size:15px;font-weight:900;
-      letter-spacing:5px;border:none;cursor:pointer;transition:.35s
+      letter-spacing:5px;border:none;cursor:pointer;transition:.35s;margin-right:15px;
     }
     .btn:hover{background:#ff0000}
+    .btn-small{padding:10px 20px;font-size:13px;margin:0 5px}
 
     /* USER INFO + LOGOUT */
     .user-info{
@@ -99,6 +100,13 @@
       font-size:14px;letter-spacing:8px;font-weight:900;color:#000;
       z-index:1000;
     }
+
+    /* KELOLA KATEGORI */
+    .kategori-list{margin-top:50px}
+    .kategori-item{
+      display:flex;align-items:center;justify-content:space-between;padding:15px 0;
+      border-bottom:2px solid #000;font-size:18px;
+    }
   </style>
 </head>
 <body>
@@ -110,8 +118,8 @@
     <div class="menu-item active" onclick="showPage('home')">HOME</div>
     <div class="menu-item" onclick="showPage('assets')">SEMUA ASSET</div>
     <div class="menu-item" id="menuAdd" style="display:none" onclick="showPage('add')">+ TAMBAH BARANG</div>
+    <div class="menu-item" id="menuKategori" style="display:none" onclick="showPage('kategori')">KELOLA KATEGORI</div>
     <div class="menu-item" onclick="alert('2026')">RUSAK / HILANG</div>
-    <div class="menu-item" id="menuReport" style="display:none" onclick="alert('2026')">EXPORT PDF</div>
   </div>
 
   <div class="user-info">
@@ -120,6 +128,7 @@
   </div>
 
   <div class="main">
+
     <div id="home" class="content active">
       <h2>DASHBOARD<br>2026</h2>
     </div>
@@ -127,7 +136,7 @@
     <div id="assets" class="content">
       <h2>SEMUA<br>ASSET</h2>
       <table>
-        <thead><tr><th>CODE</th><th>BRAND</th><th>MODEL</th><th>LOCATION</th><th>STATUS</th><th id="aksiHeader" style="display:none">ACTION</th></tr></thead>
+        <thead><tr><th>KATEGORI</th><th>MERK</th><th>TIPE</th><th>SN</th><th>LOKASI</th><th>STATUS</th><th id="aksiHeader" style="display:none">ACTION</th></tr></thead>
         <tbody id="tableBody"></tbody>
       </table>
     </div>
@@ -135,15 +144,36 @@
     <div id="add" class="content">
       <h2 id="formTitle">TAMBAH<br>BARANG</h2>
       <div class="form-box">
-        <input type="text" id="kode" placeholder="KODE ASSET">
+        <select id="kategori">
+          <option value="">— PILIH KATEGORI —</option>
+        </select>
         <input type="text" id="merk" placeholder="MERK">
-        <input type="text" id="tipe" placeholder="TIPE">
-        <input type="text" id="lokasi" placeholder="LOKASI">
-        <input type="text" id="status" placeholder="STATUS" value="OPERATIONAL">
+        <input type="text" id="tipe" placeholder="TIPE / SPESIFIKASI">
+        <input type="text" id="sn" placeholder="SERIAL NUMBER (opsional)">
+        <input type="text" id="lokasi" placeholder="LOKASI / RUANGAN">
+        <select id="status">
+          <option value="OPERATIONAL">OPERATIONAL</option>
+          <option value="RUSAK">RUSAK</option>
+          <option value="PERBAIKAN">DALAM PERBAIKAN</option>
+          <option value="HILANG">HILANG</option>
+        </select>
+        <textarea id="keterangan" placeholder="KETERANGAN TAMBAHAN (opsional)"></textarea>
         <br><br>
         <button class="btn" onclick="saveData()">SIMPAN</button>
+        <button class="btn" style="background:none;border:5px solid #000" onclick="showPage('home')">BATAL</button>
       </div>
     </div>
+
+    <!-- KELOLA KATEGORI (ADMIN ONLY) -->
+    <div id="kategori" class="content">
+      <h2>KELOLA<br>KATEGORI</h2>
+      <div class="form-box">
+        <input type="text" id="newKategori" placeholder="NAMA KATEGORI BARU">
+        <button class="btn" onclick="tambahKategori()">+ TAMBAH KATEGORI</button>
+      </div>
+      <div class="kategori-list" id="daftarKategori"></div>
+    </div>
+
   </div>
 
   <div class="footer">
@@ -161,11 +191,56 @@
         document.getElementById('userInfo').innerText = d.nama + " – " + role.toUpperCase();
         if(role==='admin'){
           document.getElementById('menuAdd').style.display='block';
-          document.getElementById('menuReport').style.display='block';
+          document.getElementById('menuKategori').style.display='block';
           document.getElementById('aksiHeader').style.display='table-cell';
         }
       });
     });
+
+    // LOAD KATEGORI
+    function loadKategori(){
+      const select = document.getElementById('kategori');
+      const list = document.getElementById('daftarKategori');
+      select.innerHTML = '<option value="">— PILIH KATEGORI —</option>';
+      list.innerHTML = '';
+      
+      db.ref('kategori').on('value', snap=>{
+        const data = snap.val() || {};
+        Object.keys(data).sort().forEach(key=>{
+          const nama = data[key].nama;
+          // dropdown
+          const opt = document.createElement('option');
+          opt.value = nama; opt.textContent = nama;
+          select.appendChild(opt);
+          // list kelola kategori
+          const div = document.createElement('div');
+          div.className = 'kategori-item';
+          div.innerHTML = `
+            <span>${nama}</span>
+            <div>
+              <button class="btn btn-small" style="background:#ff0000" onclick="hapusKategori('${key}')">HAPUS</button>
+            </div>
+          `;
+          list.appendChild(div);
+        });
+      });
+    }
+
+    function tambahKategori(){
+      const input = document.getElementById('newKategori');
+      const nama = input.value.trim();
+      if(!nama) return alert('Isi nama kategori!');
+      db.ref('kategori').push({nama}).then(()=>{
+        alert('Kategori ditambahkan!');
+        input.value = '';
+      });
+    }
+
+    function hapusKategori(key){
+      if(confirm('Hapus kategori ini? Semua barang dengan kategori ini akan jadi "LAINNYA"')){
+        db.ref('kategori/'+key).remove();
+      }
+    }
 
     function showPage(p){
       document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));
@@ -176,16 +251,17 @@
       });
       if(p==='assets') loadTable();
       if(p==='add') clearForm();
+      if(p==='kategori') loadKategori();
     }
 
     function loadTable(){
       db.ref('inventaris').on('value',s=>{
         const t=document.getElementById('tableBody');t.innerHTML='';
-        if(!s.exists()){t.innerHTML='<tr><td colspan="6" style="text-align:center;padding:180px;font-size:28px;opacity:0.2">NO DATA</td></tr>';return;}
+        if(!s.exists()){t.innerHTML='<tr><td colspan="7" style="text-align:center;padding:180px;font-size:28px;opacity:0.2">NO DATA</td></tr>';return;}
         s.forEach(c=>{
           const i=c.val();const k=c.key;
           const r=document.createElement('tr');
-          r.innerHTML=`<td>${i.kode||''}</td><td>${i.merk||''}</td><td>${i.tipe||''}</td><td>${i.lokasi||''}</td><td>${i.status||''}</td>
+          r.innerHTML=`<td>${i.kategori||'LAINNYA'}</td><td>${i.merk||''}</td><td>${i.tipe||''}</td><td>${i.sn||'-'}</td><td>${i.lokasi||''}</td><td>${i.status||''}</td>
             <td style="display:${role==='admin'?'':'none'}">
               <button class="btn" style="padding:14px 35px;font-size:14px" onclick="edit('${k}',${JSON.stringify(i)})">EDIT</button>
               <button class="btn" style="background:#ff0000;padding:14px 35px;font-size:14px;margin-left:12px" onclick="if(confirm('DELETE?'))db.ref('inventaris/${k}').remove()">DELETE</button>
@@ -198,34 +274,43 @@
     function clearForm(){
       ek=null;
       document.getElementById('formTitle').innerText='TAMBAH\nBARANG';
-      document.getElementById('kode').value='';document.getElementById('merk').value='';
-      document.getElementById('tipe').value='';document.getElementById('lokasi').value='';
-      document.getElementById('status').value='OPERATIONAL';
+      document.getElementById('kategori').selectedIndex = 0;
+      document.getElementById('merk').value='';document.getElementById('tipe').value='';
+      document.getElementById('sn').value='';document.getElementById('lokasi').value='';
+      document.getElementById('status').value='OPERATIONAL';document.getElementById('keterangan').value='';
     }
 
     function edit(k,i){
       ek=k;showPage('add');
       document.getElementById('formTitle').innerText='EDIT\nDATA';
-      document.getElementById('kode').value=i.kode||'';
+      document.getElementById('kategori').value=i.kategori||'';
       document.getElementById('merk').value=i.merk||'';
       document.getElementById('tipe').value=i.tipe||'';
+      document.getElementById('sn').value=i.sn||'';
       document.getElementById('lokasi').value=i.lokasi||'';
-      document.getElementById('status').value=i.status||'';
+      document.getElementById('status').value=i.status||'OPERATIONAL';
+      document.getElementById('keterangan').value=i.keterangan||'';
     }
 
     function saveData(){
       if(role!=='admin') return alert('ADMIN ONLY');
       const d={
-        kode:document.getElementById('kode').value.trim(),
+        kategori:document.getElementById('kategori').value||'LAINNYA',
         merk:document.getElementById('merk').value.trim(),
         tipe:document.getElementById('tipe').value.trim(),
+        sn:document.getElementById('sn').value.trim()||'-',
         lokasi:document.getElementById('lokasi').value.trim(),
-        status:document.getElementById('status').value.trim()||'OPERATIONAL'
+        status:document.getElementById('status').value,
+        keterangan:document.getElementById('keterangan').value.trim()||'-',
+        tanggal_input:new Date().toISOString().split('T')[0]
       };
-      if(!d.kode||!d.merk) return alert('KODE & MERK WAJIB!');
+      if(!d.kategori||!d.merk||!d.tipe||!d.lokasi) return alert('LENGKAPI DATA!');
       const k=ek||Date.now();
       db.ref('inventaris/'+k).set(d).then(()=>{alert('SAVED');showPage('assets');});
     }
+
+    // Auto load kategori saat buka halaman add/kategori
+    document.addEventListener('DOMContentLoaded', loadKategori);
   </script>
 </body>
 </html>
