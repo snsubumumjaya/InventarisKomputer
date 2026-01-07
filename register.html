@@ -39,18 +39,38 @@
     SN SUB UMUM ©2026 – ALL RIGHTS RESERVED
   </div>
 
-  <script>
-    firebase.initializeApp({apiKey:"AIzaSyCGyH-yVAgQU4iJ1tIz3cpWiWa65BdMsJ8",authDomain:"inventariskomputer.firebaseapp.com",databaseURL:"https://inventariskomputer-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"inventariskomputer",storageBucket:"inventariskomputer.firebasestorage.app",messagingSenderId:"915927761008",appId:"1:915927761008:web:a4b2e71159d00501fdf4b5"});
-    const auth=mettre.auth();const db=firebase.database();
-    function register(){
-      const n=document.getElementById('nama').value;
-      const e=document.getElementById('email').value;
-      const p=document.getElementById('password').value;
-      auth.createUserWithEmailAndPassword(e,p)
-        .then(c=>db.ref('users/'+c.user.uid).set({nama:n,email:e,role:'staff',createdAt:new Date().toISOString()}))
-        .then(()=>{alert("ACCOUNT CREATED");location.href="login.html"})
-        .catch(er=>alert(er.message));
-    }
-  </script>
+<script>
+  firebase.initializeApp({apiKey:"AIzaSyCGyH-yVAgQU4iJ1tIz3cpWiWa65BdMsJ8",authDomain:"inventariskomputer.firebaseapp.com",databaseURL:"https://inventariskomputer-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"inventariskomputer",storageBucket:"inventariskomputer.firebasestorage.app",messagingSenderId:"915927761008",appId:"1:915927761008:web:a4b2e71159d00501fdf4b5"});
+  const auth = firebase.auth();
+  const db = firebase.database();
+
+  function register(){
+    const nama = document.getElementById('nama').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const pass = document.getElementById('password').value;
+
+    // CEK APAKAH INI AKUN PERTAMA YANG PERNAH DAFTAR
+    db.ref('users').once('value').then(snapshot => {
+      const sudahAdaUser = snapshot.exists(); // true = sudah ada user, false = belum ada sama sekali
+
+      auth.createUserWithEmailAndPassword(email, pass)
+        .then(cred => {
+          const roleYangDikasih = sudahAdaUser ? 'staff' : 'admin'; // <<< INI RAHASIANYA!!!
+
+          return db.ref('users/' + cred.user.uid).set({
+            nama: nama,
+            email: email,
+            role: roleYangDikasih,
+            createdAt: new Date().toISOString()
+          });
+        })
+        .then(() => {
+          alert(sudahAdaUser ? "AKUN BERHASIL DIBUAT (STAFF)" : "SELAMAT! KAMU ADMIN PERTAMA 🔥");
+          location.href = "login.html";
+        })
+        .catch(e => alert(e.message));
+    });
+  }
+</script>
 </body>
 </html>
