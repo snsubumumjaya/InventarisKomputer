@@ -1,82 +1,86 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>INVENTORY DATABASE</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>INVENTORY</title>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Helvetica Neue',sans-serif;background:#000;color:#fff;min-height:100vh;padding:80px 60px;
+      background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);
+      background-size:50px 50px;position:relative}
+    body::before{content:"";position:fixed;inset:0;background:linear-gradient(#111 2px,transparent 2px),linear-gradient(90deg,#111 2px,transparent 2px);background-size:140px 140px;opacity:0.35;pointer-events:none}
+    h1{font-size:160px;font-weight:900;text-transform:uppercase;letter-spacing:-12px;line-height:0.8;margin-bottom:80px}
+    .header{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:50px;border-bottom:2px solid #222;margin-bottom:100px}
+    .user{font-size:14px;letter-spacing:8px;opacity:0.7}
+    .logout{background:none;border:2px solid #fff;padding:15px 40px;font-size:13px;letter-spacing:6px;cursor:pointer}
+    .logout:hover{background:#ff0000;color:#000;border-color:#ff0000}
+    .add{background:#fff;color:#000;padding:20px 50px;font-weight:900;letter-spacing:6px;font-size:18px;cursor:pointer}
+    .add:hover{background:#ff0000;color:#fff}
+    table{width:100%;border-collapse:separate;border-spacing:0 40px;margin-top:50px}
+    th{text-align:left;font-size:14px;letter-spacing:8px;text-transform:uppercase;opacity:0.5;padding-bottom:30px}
+    td{padding:35px 0;border-bottom:2px solid rgba(255,255,255,0.08);font-size:22px;font-weight:300}
+    .btn{padding:12px 30px;background:none;border:2px solid #fff;margin-right:15px;font-size:12px;letter-spacing:4px;text-transform:uppercase;cursor:pointer}
+    .del{border-color:#ff0000;color:#ff0000}
+    .del:hover{background:#ff0000;color:#000}
+    .form{display:none;background:rgba(255,255,255,0.02);padding:100px;border:2px solid rgba(255,255,255,0.2);margin:140px 0}
+    .form input{width:100%;padding:30px 0;background:none;border:none;border-bottom:2px solid rgba(255,255,255,0.2);color:#fff;font-size:21px;margin:40px 0}
+    .footer{position:fixed;bottom:50px;left:50%;transform:translateX(-50%);font-size:12px;letter-spacing:10px;opacity:0.3;border-top:1px solid #333;padding-top:20px;width:100%;text-align:center}
+  </style>
 </head>
 <body>
-  <div class="container">
-    “<div class="quote-left">“</div>
-    <div class="header">
-      <h1>Inventaris<br>Komputer</h1>
-      <div>
-        <span class="user-info" id="userInfo"></span>
-        <button class="logout-btn" onclick="firebase.auth().signOut().then(()=>location.href='login.html')">LOGOUT</button>
-      </div>
-    </div>
-
-    <div id="adminOnly" style="display:none">
-      <button class="btn-add" onclick="showForm()">+ ADD NEW ASSET</button>
-    </div>
-
-    <div id="formInput" class="form" style="display:none">
-      <h2 id="formTitle">ADD NEW ASSET</h2><br>
-      <input type="text" id="kode" placeholder="ASSET CODE">
-      <input type="text" id="merk" placeholder="BRAND">
-      <input type="text" id="tipe" placeholder="MODEL / SPEC">
-      <input type="text" id="lokasi" placeholder="LOCATION">
-      <input type="text" id="status" placeholder="STATUS" value="OPERATIONAL">
-      <br><br>
-      <button class="btn-add" onclick="saveData()">SAVE TO DATABASE</button>
-      <button style="background:none;border:1px solid #666;margin-left:20px;padding:15px 40px" onclick="document.getElementById('formInput').style.display='none'">CANCEL</button>
-    </div>
-
-    <table>
-      <thead>
-        <tr><th>CODE</th><th>BRAND</th><th>MODEL</th><th>LOCATION</th><th>STATUS</th><th id="aksiHeader" style="display:none">ACTION</th></tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-    <div class="quote-right">”</div>”
+  <h1>Inventaris<br>Komputer</h1>
+  <div class="header">
+    <div class="user" id="userInfo"></div>
+    <button class="logout" onclick="firebase.auth().signOut().then(()=>location.href='login.html')">LOGOUT</button>
   </div>
 
-  <div class="footer-text">SNSU BUMUM JAYA – INTERNAL INVENTORY SYSTEM 2025</div>
+  <button class="add" id="adminOnly" style="display:none" onclick="showForm()">+ ADD NEW ASSET</button>
+
+  <div class="form" id="formInput">
+    <h2 style="font-size:70px;letter-spacing:15px;margin-bottom:50px" id="formTitle">ADD ASSET</h2>
+    <input type="text" id="kode" placeholder="CODE">
+    <input type="text" id="merk" placeholder="BRAND">
+    <input type="text" id="tipe" placeholder="MODEL">
+    <input type="text" id="lokasi" placeholder="LOCATION">
+    <input type="text" id="status" placeholder="STATUS" value="OPERATIONAL">
+    <br><br>
+    <button class="add" onclick="saveData()">SAVE</button>
+    <button style="background:none;border:2px solid #666;margin-left:20px;padding:18px 40px" onclick="document.getElementById('formInput').style.display='none'">CANCEL</button>
+  </div>
+
+  <table>
+    <thead><tr><th>CODE</th><th>BRAND</th><th>MODEL</th><th>LOCATION</th><th>STATUS</th><th id="aksiHeader" style="display:none">ACTION</th></tr></thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+  <div class="footer">SNSU BUMUM JAYA – INTERNAL SYSTEM 2025</div>
 
   <script>
     firebase.initializeApp({apiKey:"AIzaSyCGyH-yVAgQU4iJ1tIz3cpWiWa65BdMsJ8",authDomain:"inventariskomputer.firebaseapp.com",databaseURL:"https://inventariskomputer-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"inventariskomputer",storageBucket:"inventariskomputer.firebasestorage.app",messagingSenderId:"915927761008",appId:"1:915927761008:web:a4b2e71159d00501fdf4b5"});
-    const auth = firebase.auth(); const db = firebase.database(); let role = 'staff'; let editingKey = null;
-
-    auth.onAuthStateChanged(user => {
-      if(!user) return location.href="login.html";
-      db.ref('users/'+user.uid).once('value').then(s=> {
-        const d = s.val(); role = d.role || 'staff';
-        document.getElementById('userInfo').innerText = d.nama + " – " + role.toUpperCase();
+    const auth=firebase.auth();const db=firebase.database();let role='staff',ek=null;
+    auth.onAuthStateChanged(u=>{if(!u)return location.href="login.html";
+      db.ref('users/'+u.uid).once('value').then(s=>{const d=s.val();role=d.role||'staff';
+        document.getElementById('userInfo').innerText=d.nama+" – "+role.toUpperCase();
         if(role==='admin'){document.getElementById('adminOnly').style.display='block';document.getElementById('aksiHeader').style.display='table-cell';}
       });
-
-      db.ref('inventaris').on('value', snap => {
-        const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
-        if(!snap.exists()){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;opacity:0.5;padding:100px">NO DATA AVAILABLE</td></tr>';return;}
-        snap.forEach(child => {
-          const item = child.val(); const key = child.key;
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${item.kode}</td><td>${item.merk}</td><td>${item.tipe}</td><td>${item.lokasi}</td><td>${item.status}</td>
+      db.ref('inventaris').on('value',s=>{const t=document.getElementById('tableBody');t.innerHTML='';
+        if(!s.exists()){t.innerHTML='<tr><td colspan="6" style="text-align:center;opacity:0.5;padding:120px">NO DATA</td></tr>';return;}
+        s.forEach(c=>{const i=c.val();const k=c.key;
+          const r=document.createElement('tr');
+          r.innerHTML=`<td>${i.kode}</td><td>${i.merk}</td><td>${i.tipe}</td><td>${i.lokasi}</td><td>${i.status}</td>
             <td style="display:${role==='admin'?'':'none'}">
-              <button class="btn-edit" onclick="editItem('${key}',${JSON.stringify(item)})">EDIT</button>
-              <button class="btn-delete" onclick="if(confirm('DELETE THIS ASSET?'))db.ref('inventaris/${key}').remove()">DELETE</button>
+              <button class="btn" onclick="edit('${k}',${JSON.stringify(i)})">EDIT</button>
+              <button class="btn del" onclick="if(confirm('DELETE?'))db.ref('inventaris/${k}').remove()">DELETE</button>
             </td>`;
-          tbody.appendChild(tr);
+          t.appendChild(r);
         });
       });
     });
-
-    function showForm(){if(role!=='admin')return alert('ADMIN ONLY');editingKey=null;document.getElementById('formTitle').innerText='ADD NEW ASSET';document.getElementById('formInput').style.display='block';}
-    function editItem(key,item){editingKey=key;document.getElementById('formTitle').innerText='EDIT ASSET';document.getElementById('formInput').style.display='block';document.getElementById('kode').value=item.kode;document.getElementById('merk').value=item.merk;document.getElementById('tipe').value=item.tipe;document.getElementById('lokasi').value=item.lokasi;document.getElementById('status').value=item.status;}
-    function saveData(){if(role!=='admin')return;const data={kode:document.getElementById('kode').value,merk:document.getElementById('merk').value,tipe:document.getElementById('tipe').value,lokasi:document.getElementById('lokasi').value,status:document.getElementById('status').value};const key=editingKey||Date.now();db.ref('inventaris/'+key).set(data);document.getElementById('formInput').style.display='none';}
+    function showForm(){if(role!=='admin')return alert('ADMIN ONLY');ek=null;document.getElementById('formTitle').innerText='ADD NEW ASSET';document.getElementById('formInput').style.display='block';}
+    function edit(k,i){ek=k;document.getElementById('formTitle').innerText='EDIT ASSET';document.getElementById('formInput').style.display='block';document.getElementById('kode').value=i.kode;document.getElementById('merk').value=i.merk;document.getElementById('tipe').value=i.tipe;document.getElementById('lokasi').value=i.lokasi;document.getElementById('status').value=i.status;}
+    function saveData(){if(role!=='admin')return;const d={kode:document.getElementById('kode').value,merk:document.getElementById('merk').value,tipe:document.getElementById('tipe').value,lokasi:document.getElementById('lokasi').value,status:document.getElementById('status').value};const k=ek||Date.now();db.ref('inventaris/'+k).set(d);document.getElementById('formInput').style.display='none';}
   </script>
 </body>
 </html>
