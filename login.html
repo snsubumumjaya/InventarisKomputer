@@ -6,19 +6,19 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <style>
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Helvetica Neue',sans-serif;background:#000;color:#fff;min-height:100vh;padding:100px 40px;
-      background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);
+    body{font-family:'Helvetica Neue',sans-serif;background:#fff;color:#000;min-height:100vh;padding:100px 40px;
+      background-image:linear-gradient(rgba(0,0,0,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.02) 1px,transparent 1px);
       background-size:40px 40px;position:relative}
-    body::before{content:"";position:fixed;inset:0;background:linear-gradient(#111 2px,transparent 2px),linear-gradient(90deg,#111 2px,transparent 2px);background-size:120px 120px;opacity:0.3;pointer-events:none}
+    body::before{content:"";position:fixed;inset:0;background:linear-gradient(#ccc 2px,transparent 2px),linear-gradient(90deg,#ccc 2px,transparent 2px);background-size:120px 120px;opacity:0.4;pointer-events:none}
     h1{font-size:140px;font-weight:900;text-transform:uppercase;letter-spacing:-10px;line-height:0.8;margin-bottom:100px}
-    .box{max-width:600px;margin:0 auto;background:rgba(255,255,255,0.02);padding:120px 80px;border:2px solid rgba(255,255,255,0.2);position:relative}
-    .box::before{content:"“";position:absolute;top:-60px;left:40px;font-size:300px;opacity:0.08}
-    .box::after{content:"”";position:absolute;bottom:-80px;right:40px;font-size:300px;opacity:0.08}
-    input{width:100%;padding:30px 0;background:none;border:none;border-bottom:3px solid #333;color:#fff;font-size:22px;margin:50px 0;outline:none;transition:.4s}
-    input:focus{border-color:#fff}
-    button{width:100%;padding:28px;background:#fff;color:#000;font-weight:900;font-size:20px;text-transform:uppercase;letter-spacing:5px;border:none;cursor:pointer;transition:.4s}
+    .box{max-width:600px;margin:0 auto;background:rgba(0,0,0,0.02);padding:120px 80px;border:3px solid #000;position:relative}
+    .box::before{content:"“";position:absolute;top:-60px;left:40px;font-size:300px;opacity:0.1}
+    .box::after{content:"”";position:absolute;bottom:-80px;right:40px;font-size:300px;opacity:0.1}
+    input{width:100%;padding:30px 0;background:none;border:none;border-bottom:3px solid #999;color:#000;font-size:22px;margin:50px 0;outline:none;transition:.4s}
+    input:focus{border-color:#000}
+    button{width:100%;padding:28px;background:#000;color:#fff;font-weight:900;font-size:20px;text-transform:uppercase;letter-spacing:5px;border:none;cursor:pointer;transition:.4s}
     button:hover{background:#ff0000;color:#fff}
-    .footer{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);font-size:12px;letter-spacing:10px;opacity:0.4}
+    a{color:#000;text-decoration:underline}
   </style>
 </head>
 <body>
@@ -29,14 +29,12 @@
     <input type="password" id="password" placeholder="PASSWORD">
     <button onclick="login()">ENTER SYSTEM</button>
     <p style="text-align:center;margin-top:50px;opacity:0.6;font-size:14px">
-      NO ACCOUNT? <a href="register.html" style="color:#fff;text-decoration:underline">CREATE ONE</a>
+      NO ACCOUNT? <a href="register.html">CREATE ONE</a>
     </p>
     <p id="msg" style="color:#ff0000;margin-top:30px;text-align:center"></p>
   </div>
-
-  <!-- FOOTER BARU — RAPI DI BAWAH BOX -->
-  <div style="margin-top:200px; text-align:center; font-size:12px; letter-spacing:8px; opacity:0.4; padding:40px 0; border-top:1px solid #333;">
-    SN SUB UMUM ©2026 – ALL RIGHTS RESERVED
+  <div style="margin-top:200px;text-align:center;font-size:12px;letter-spacing:8px;opacity:0.5;padding:40px 0;border-top:1px solid #ccc">
+    SNSU BUMUM JAYA © 2025 – ALL RIGHTS RESERVED
   </div>
 
   <script>
