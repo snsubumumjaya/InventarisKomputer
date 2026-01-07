@@ -4,14 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Inventaris Komputer</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <style>
     body{font-family:Arial;background:#f4f6f9;margin:0;padding:20px}
-    .container{max-width:1100px;margin:auto;background:white;padding:25px;border-radius:12px;box-shadow:0 5px 20px rgba(0,0,0,0.1)}
+    .container{max-width:1100px;margin:auto;background:white;padding:30px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.1)}
     .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-    button{padding:10px 15px;border:none;border-radius:6px;color:white;cursor:pointer;font-size:14px}
+    button{padding:10px 20px;margin:5px;border:none;border-radius:6px;color:white;cursor:pointer}
     .btn-add{background:#28a745}
     .btn-edit{background:#007bff}
-    .btn-delete{background:#dc3545;margin-left:5px}
+    .btn-delete{background:#dc3545}
     table{width:100%;border-collapse:collapse;margin-top:20px}
     th,td{border:1px solid #ddd;padding:12px;text-align:left}
     th{background:#007bff;color:white}
@@ -28,24 +31,24 @@
       <h1>Inventaris Komputer</h1>
       <div>
         <span id="userInfo"></span>
-        <button onclick="logout()" style="background:#dc3545;margin-left:10px">Logout</button>
+        <button onclick="firebase.auth().signOut().then(()=>location.href='login.html')" style="background:#dc3545">Logout</button>
       </div>
     </div>
 
-    <div id="adminOnly" style="display:none;margin-bottom:20px">
-      <button class="btn-add" onclick="showForm()">+ Tambah Komputer</button>
+    <div id="adminOnly" style="display:none">
+      <button class="btn-add" onclick="showForm()">+ Tambah Data</button>
     </div>
 
     <div id="formInput" class="form">
-      <h3 id="formTitle">Tambah Komputer</h3>
+      <h3 id="formTitle">Tambah Data</h3>
       <input type="text" id="kode" placeholder="Kode Asset" required />
       <input type="text" id="merk" placeholder="Merk" required />
       <input type="text" id="tipe" placeholder="Tipe/Spek" required />
-      <input type="text" id="lokasi" placeholder="Lokasi/Ruang" required />
-      <input type="text" id="status" placeholder="Status (Baik/Rusak/Hilang)" value="Baik" />
+      <input type="text" id="lokasi" placeholder="Lokasi" required />
+      <input type="text" id="status" placeholder="Status" value="Baik" />
       <br><br>
       <button class="btn-add" onclick="saveData()">Simpan</button>
-      <button onclick="cancelForm()" style="background:#6c757d">Batal</button>
+      <button onclick="document.getElementById('formInput').style.display='none'" style="background:#6c757d">Batal</button>
     </div>
 
     <table>
@@ -63,6 +66,97 @@
     </table>
   </div>
 
-  <script type="module" src="script.mjs"></script>
+  <script>
+    const firebaseConfig = { /* sama persis */ 
+      apiKey: "AIzaSyCGyH-yVAgQU4iJ1tIz3cpWiWa65BdMsJ8",
+      authDomain: "inventariskomputer.firebaseapp.com",
+      databaseURL: "https://inventariskomputer-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "inventariskomputer",
+      storageBucket: "inventariskomputer.firebasestorage.app",
+      messagingSenderId: "915927761008",
+      appId: "1:915927761008:web:a4b2e71159d00501fdf4b5"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    let role = 'staff';
+    let editingKey = null;
+
+    auth.onAuthStateChanged(user => {
+      if (!user) return location.href = "login.html";
+
+      db.ref('users/' + user.uid).once('value').then(snap => {
+        const data = snap.val();
+        role = data.role || 'staff';
+        document.getElementById('userInfo').innerText = data.nama + " (" + role.toUpperCase() + ")";
+
+        if (role === 'admin') {
+          document.getElementById('adminOnly').style.display = 'block';
+          document.getElementById('aksiHeader').style.display = 'table-cell';
+        }
+      });
+
+      // Load data
+      db.ref('inventaris').on('value', snap => {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        if (!snap.exists()) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">Belum ada data</td></tr>';
+          return;
+        }
+        snap.forEach(child => {
+          const item = child.val();
+          const key = child.key;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${item.kode}</td>
+            <td>${item.merk}</td>
+            <td>${item.tipe}</td>
+            <td>${item.lokasi}</td>
+            <td><span class="status-${item.status.toLowerCase()}">${item.status}</span></td>
+            <td style="display:${role==='admin'?'':'none'}">
+              <button class="btn-edit" onclick="editItem('${key}',${JSON.stringify(item)})">Edit</button>
+              <button class="btn-delete" onclick="if(confirm('Yakin hapus?')) db.ref('inventaris/${key}').remove()">Hapus</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+    });
+
+    function showForm() {
+      if (role !== 'admin') return alert('Hanya admin!');
+      editingKey = null;
+      document.getElementById('formTitle').innerText = "Tambah Komputer";
+      document.getElementById('formInput').style.display = 'block';
+      document.getElementById('status').value = 'Baik';
+    }
+
+    function editItem(key, item) {
+      editingKey = key;
+      document.getElementById('formTitle').innerText = "Edit Komputer";
+      document.getElementById('formInput').style.display = 'block';
+      document.getElementById('kode').value = item.kode;
+      document.getElementById('merk').value = item.merk;
+      document.getElementById('tipe').value = item.tipe;
+      document.getElementById('lokasi').value = item.lokasi;
+      document.getElementById('status').value = item.status;
+    }
+
+    function saveData() {
+      if (role !== 'admin') return;
+      const data = {
+        kode: document.getElementById('kode').value,
+        merk: document.getElementById('merk').value,
+        tipe: document.getElementById('tipe').value,
+        lokasi: document.getElementById('lokasi').value,
+        status: document.getElementById('status').value,
+      };
+      const key = editingKey || Date.now();
+      db.ref('inventaris/' + key).set(data);
+      document.getElementById('formInput').style.display = 'none';
+    }
+  </script>
 </body>
 </html>
