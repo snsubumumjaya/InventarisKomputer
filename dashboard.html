@@ -39,15 +39,16 @@
     .menu-item{
       font-size:17px;font-weight:900;letter-spacing:-0.3px;margin:30px 0;
       cursor:pointer;transition:all .35s;opacity:0.8;padding-left:0;position:relative;
+      padding-bottom:8px; /* spasi buat garis di bawah */
     }
     .menu-item:hover,.menu-item.active{
-      opacity:1;padding-left:25px;
+      opacity:1;
     }
-    .menu-item::before{
-      content:"";position:absolute;left:0;top:50%;width:0;height:3px;background:#fff;
-      transition:all .35s;transform:translateY(-50%);
+    .menu-item::after{
+      content:"";position:absolute;left:0;bottom:0;width:0;height:3px;background:#fff;
+      transition:all .35s;
     }
-    .menu-item:hover::before,.menu-item.active::before{width:40px}
+    .menu-item:hover::after,.menu-item.active::after{width:40px}
 
     /* MAIN CONTENT */
     .main{
@@ -92,7 +93,7 @@
     }
     .logout-btn:hover{background:#000;color:#fff}
 
-    /* FOOTER CUMA TULISAN HITAM DOANG — TANPA BOX HITAM */
+    /* FOOTER TULISAN HITAM DOANG */
     .footer{
       position:fixed;bottom:30px;left:300px;right:0;text-align:center;
       font-size:14px;letter-spacing:8px;font-weight:900;color:#000;
@@ -102,7 +103,6 @@
 </head>
 <body>
 
-  <!-- SIDEBAR FULL SAMPE BAWAH -->
   <div class="sidebar">
     <div class="logo">
       <h1>INVENTARIS<br>KOMPUTER</h1>
@@ -146,7 +146,6 @@
     </div>
   </div>
 
-  <!-- FOOTER CUMA TULISAN HITAM DOANG -->
   <div class="footer">
     SN SUB UMUM – INTERNAL INVENTORY SYSTEM 2026
   </div>
