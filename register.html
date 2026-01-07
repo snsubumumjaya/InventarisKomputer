@@ -40,35 +40,57 @@
   </div>
 
 <script>
-  firebase.initializeApp({apiKey:"AIzaSyCGyH-yVAgQU4iJ1tIz3cpWiWa65BdMsJ8",authDomain:"inventariskomputer.firebaseapp.com",databaseURL:"https://inventariskomputer-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"inventariskomputer",storageBucket:"inventariskomputer.firebasestorage.app",messagingSenderId:"915927761008",appId:"1:915927761008:web:a4b2e71159d00501fdf4b5"});
-  const auth = firebase.auth();
+  firebase.initializeApp({
+    apiKey: "AIzaSyCGyH-yVAgQU4iJ1tIz3cpWiWa65BdMsJ8",
+    authDomain: "inventariskomputer.firebaseapp.com",
+    databaseURL: "https://inventariskomputer-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "inventariskomputer",
+    storageBucket: "inventariskomputer.firebasestorage.app",
+    messagingSenderId: "915927761008",
+    appId: "1:915927761008:web:a4b2e71159d00501fdf4b5"
+  });
+
+  const auth = firebase.auth();   // <<< INI YANG BENAR!!!
   const db = firebase.database();
 
-  function register(){
+  function register() {
     const nama = document.getElementById('nama').value.trim();
     const email = document.getElementById('email').value.trim();
     const pass = document.getElementById('password').value;
 
-    // CEK APAKAH INI AKUN PERTAMA YANG PERNAH DAFTAR
+    if (!nama || !email || !pass) {
+      alert("ISI SEMUA FIELD BRO!");
+      return;
+    }
+
+    // Cek apakah ini akun pertama
     db.ref('users').once('value').then(snapshot => {
-      const sudahAdaUser = snapshot.exists(); // true = sudah ada user, false = belum ada sama sekali
+      const pertamaKali = !snapshot.exists();   // true = belum ada user sama sekali
 
       auth.createUserWithEmailAndPassword(email, pass)
         .then(cred => {
-          const roleYangDikasih = sudahAdaUser ? 'staff' : 'admin'; // <<< INI RAHASIANYA!!!
+          const role = pertamaKali ? 'admin' : 'staff';
 
           return db.ref('users/' + cred.user.uid).set({
             nama: nama,
             email: email,
-            role: roleYangDikasih,
+            role: role,
             createdAt: new Date().toISOString()
           });
         })
         .then(() => {
-          alert(sudahAdaUser ? "AKUN BERHASIL DIBUAT (STAFF)" : "SELAMAT! KAMU ADMIN PERTAMA 🔥");
+          alert(pertamaKali 
+            ? "SELAMAT BRO! KAMU ADMIN PERTAMA SISTEM 🔥👑" 
+            : "AKUN BERHASIL DIBUAT – KAMU STAFF"
+          );
           location.href = "login.html";
         })
-        .catch(e => alert(e.message));
+        .catch(err => {
+          console.error(err);
+          alert("GAGAL DAFTAR: " + err.message);
+        });
+    }).catch(err => {
+      alert("ERROR CEK DATABASE: " + err.message);
     });
   }
 </script>
