@@ -307,7 +307,6 @@
         .catch(err => alert('Error simpan data: ' + err.message));
     }
 
-    // Load tabel kategori dengan error handling lengkap
     function loadKategoriTable() {
       const tbody = document.getElementById('kategoriTableBody');
       tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:100px;opacity:0.5">Loading kategori...</td></tr>';
@@ -381,7 +380,6 @@
         });
     }
 
-    // Load dropdown saat buka add
     loadKategoriDropdown();
   </script>
 </body>
