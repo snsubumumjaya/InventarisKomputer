@@ -105,6 +105,7 @@
     <div class="menu-item active" onclick="showPage('home')">HOME</div>
     <div class="menu-item" onclick="showPage('assets')">SEMUA ASSET</div>
     <div class="menu-item" id="menuAdd" style="display:none" onclick="showPage('add')">+ TAMBAH BARANG</div>
+    <div class="menu-item" id="menuKategori" style="display:none" onclick="showPage('kategori')">KELOLA KATEGORI</div>
     <div class="menu-item" onclick="alert('2026')">RUSAK / HILANG</div>
   </div>
   <div class="user-info">
@@ -124,39 +125,7 @@
     </div>
     <div id="add" class="content">
       <h2>TAMBAH<br>BARANG</h2>
-
-      <!-- KELOLA KATEGORI (hanya admin) -->
-      <div class="form-box" id="kelolaKategoriSection" style="display:none;">
-        <h3 style="font-size:28px;margin-bottom:40px">KELOLA KATEGORI</h3>
-
-        <div class="form-box" id="formTambahKategori" style="display:none;margin-bottom:60px;">
-          <input type="text" id="namaKategoriBaru" placeholder="NAMA KATEGORI BARU">
-          <br><br>
-          <button class="btn" onclick="addKategori()">TAMBAH KATEGORI</button>
-          <button class="btn" style="background:#999;" onclick="document.getElementById('formTambahKategori').style.display='none'">BATAL</button>
-        </div>
-
-        <div style="margin-bottom:40px;">
-          <button class="btn" onclick="document.getElementById('formTambahKategori').style.display='block'; document.getElementById('namaKategoriBaru').focus();">
-            + TAMBAH KATEGORI BARU
-          </button>
-        </div>
-
-        <table style="width:100%">
-          <thead>
-            <tr>
-              <th style="text-align:left;font-size:14px;letter-spacing:6px;opacity:0.7">NO</th>
-              <th style="text-align:left;font-size:14px;letter-spacing:6px;opacity:0.7">NAMA KATEGORI</th>
-              <th>ACTION</th>
-            </tr>
-          </thead>
-          <tbody id="kategoriTableBody"></tbody>
-        </table>
-      </div>
-
-      <!-- FORM TAMBAH BARANG -->
       <div class="form-box">
-        <h3 style="font-size:28px;margin-bottom:40px">FORM TAMBAH BARANG BARU</h3>
         <select id="kategori">
           <option value="">— PILIH KATEGORI —</option>
         </select>
@@ -172,7 +141,39 @@
         </select>
         <textarea id="keterangan" placeholder="KETERANGAN TAMBAHAN (opsional)"></textarea>
         <br><br>
-        <button class="btn" onclick="saveData()">SIMPAN BARANG</button>
+        <button class="btn" onclick="saveData()">SIMPAN</button>
+      </div>
+    </div>
+    <!-- MENU KELOLA KATEGORI TERPISAH -->
+    <div id="kategori" class="content">
+      <h2>KELOLA<br>KATEGORI</h2>
+
+      <div class="form-box" id="formTambahKategori" style="display:none;">
+        <h3 style="font-size:28px;margin-bottom:40px">TAMBAH KATEGORI BARU</h3>
+        <input type="text" id="namaKategoriBaru" placeholder="NAMA KATEGORI BARU">
+        <br><br>
+        <button class="btn" onclick="addKategori()">TAMBAH KATEGORI</button>
+        <button class="btn" style="background:#999;" onclick="document.getElementById('formTambahKategori').style.display='none'">BATAL</button>
+      </div>
+
+      <div style="margin-bottom:40px;">
+        <button class="btn" onclick="document.getElementById('formTambahKategori').style.display='block'; document.getElementById('namaKategoriBaru').focus();">
+          + TAMBAH KATEGORI BARU
+        </button>
+      </div>
+
+      <div class="form-box">
+        <h3 style="font-size:28px;margin-bottom:40px">DAFTAR KATEGORI SAAT INI</h3>
+        <table style="width:100%">
+          <thead>
+            <tr>
+              <th style="text-align:left;font-size:14px;letter-spacing:6px;opacity:0.7">NO</th>
+              <th style="text-align:left;font-size:14px;letter-spacing:6px;opacity:0.7">NAMA KATEGORI</th>
+              <th>ACTION</th>
+            </tr>
+          </thead>
+          <tbody id="kategoriTableBody"></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -218,7 +219,7 @@
     const auth = firebase.auth();
     const db = firebase.database();
     let role = 'staff';
-    let currentEditKey = null; // Untuk simpan key barang yang diedit
+    let currentEditKey = null;
 
     // Default kategori
     const defaultKategori = ["Laptop","PC Desktop","Monitor","Printer","Aksesoris","Jaringan","Lainnya"];
@@ -239,12 +240,11 @@
           document.getElementById('userInfo').innerText = d.nama + " – " + role.toUpperCase();
           if (role === 'admin') {
             document.getElementById('menuAdd').style.display = 'block';
+            document.getElementById('menuKategori').style.display = 'block';
             document.getElementById('aksiHeader').style.display = 'table-cell';
-            document.getElementById('kelolaKategoriSection').style.display = 'block';
           }
           showPage('home');
           loadKategoriDropdown();
-          if (role === 'admin') loadKategoriTable();
         });
     });
 
@@ -255,10 +255,8 @@
       const activeMenu = Array.from(document.querySelectorAll('.menu-item')).find(m => m.onclick && m.onclick.toString().includes(id));
       if (activeMenu) activeMenu.classList.add('active');
       if (id === 'assets') loadTable();
-      if (id === 'add') {
-        loadKategoriDropdown();
-        if (role === 'admin') loadKategoriTable();
-      }
+      if (id === 'add') loadKategoriDropdown();
+      if (id === 'kategori') loadKategoriTable();
     }
 
     function loadKategoriDropdown() {
@@ -282,12 +280,12 @@
 
     function loadKategoriTable() {
       const tbody = document.getElementById('kategoriTableBody');
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:80px;opacity:0.5">Loading...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:100px;opacity:0.5">Loading...</td></tr>';
       db.ref('kategori').on('value', snap => {
         const data = snap.val() || {};
         tbody.innerHTML = '';
         if (Object.keys(data).length === 0) {
-          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:80px;opacity:0.5">BELUM ADA KATEGORI</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:100px;opacity:0.5">BELUM ADA KATEGORI</td></tr>';
           return;
         }
         let no = 1;
@@ -329,7 +327,6 @@
       });
     }
 
-    // Modal edit barang
     function openEditModal(key, data) {
       if (role !== 'admin') return;
       currentEditKey = key;
@@ -393,14 +390,13 @@
         });
     }
 
-    // CRUD kategori tetap sama
     function addKategori() {
       if (role !== 'admin') return alert('ADMIN ONLY');
       const nama = document.getElementById('namaKategoriBaru').value.trim();
       if (!nama) return alert('ISI NAMA KATEGORI!');
       db.ref('kategori').push({nama})
         .then(() => {
-          alert('KATEGORI DITAMBAHKAN!');
+          alert('KATEGORI BERHASIL DITAMBAHKAN!');
           document.getElementById('namaKategoriBaru').value = '';
           document.getElementById('formTambahKategori').style.display = 'none';
           loadKategoriDropdown();
@@ -413,7 +409,7 @@
       if (namaBaru === null || !namaBaru.trim()) return;
       db.ref('kategori/' + key).update({nama: namaBaru.trim()})
         .then(() => {
-          alert('KATEGORI DIUPDATE!');
+          alert('KATEGORI BERHASIL DIUPDATE!');
           loadKategoriDropdown();
         });
     }
@@ -423,7 +419,7 @@
       if (!confirm('YAKIN HAPUS KATEGORI INI?')) return;
       db.ref('kategori/' + key).remove()
         .then(() => {
-          alert('KATEGORI DIHAPUS!');
+          alert('KATEGORI BERHASIL DIHAPUS!');
           loadKategoriDropdown();
         });
     }
