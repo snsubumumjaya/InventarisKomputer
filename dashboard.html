@@ -50,9 +50,9 @@
     .content.active{display:block}
     h2{font-size:64px;font-weight:900;letter-spacing:-6px;line-height:0.95;margin-bottom:80px}
     /* TABLE */
-    table{width:100%;border-collapse:separate;border-spacing:0 35px}
-    th{font-size:12px;letter-spacing:6px;text-transform:uppercase;opacity:0.7;padding-bottom:25px}
-    td{font-size:19px;font-weight:400;padding:25px 0;border-bottom:5px solid #000}
+    table{width:100%;border-collapse:separate;border-spacing:0 25px}
+    th{font-size:12px;letter-spacing:6px;text-transform:uppercase;opacity:0.7;padding-bottom:20px}
+    td{font-size:18px;font-weight:400;padding:20px 0;border-bottom:5px solid #000}
     /* FORM */
     .form-box{
       background:#fafafa;padding:60px 80px;border:8px solid #000;margin:100px 0;
@@ -63,17 +63,25 @@
     }
     /* LAYOUT SIDE BY SIDE DI TAMBAH BARANG */
     .add-layout{
-      display:flex;gap:120px;flex-wrap:wrap;justify-content:center;
+      display:flex;gap:100px;flex-wrap:wrap;align-items:flex-start;justify-content:center;
     }
     .left-tambah-barang{flex:1;min-width:600px;max-width:900px;}
-    .right-kelola-kategori{flex:1;min-width:500px;max-width:700px;display:none;} /* hidden untuk staff */
+    .right-kelola-kategori{
+      flex:0 0 500px;display:none;flex-direction:column;gap:30px;
+    }
     .right-kelola-kategori .form-box{
-      padding:50px 60px;margin:0;
+      padding:50px 60px;margin:0;flex:1;display:flex;flex-direction:column;
     }
     .right-kelola-kategori h3{
-      font-size:24px;margin-bottom:30px;letter-spacing:-2px;
+      font-size:26px;margin-bottom:20px;letter-spacing:-2px;
     }
-    .right-kelola-kategori table th{
+    .right-kelola-kategori .tambah-kategori-controls{
+      margin-bottom:20px;
+    }
+    .right-kelola-kategori table{
+      flex:1;
+    }
+    .right-kelola-kategori th{
       font-size:11px;letter-spacing:5px;
     }
     .right-kelola-kategori td{
@@ -169,19 +177,18 @@
           </div>
         </div>
 
-        <!-- KANAN: KELOLA KATEGORI (minimalis, hanya admin) -->
+        <!-- KANAN: KELOLA KATEGORI (sejajar dari atas) -->
         <div class="right-kelola-kategori" id="kelolaKategoriSection">
           <div class="form-box">
             <h3>KELOLA KATEGORI</h3>
 
-            <div id="formTambahKategori" style="display:none;margin-bottom:50px;">
-              <input type="text" id="namaKategoriBaru" placeholder="NAMA KATEGORI BARU">
-              <br><br>
-              <button class="btn btn-small" onclick="addKategori()">TAMBAH</button>
-              <button class="btn btn-small" style="background:#999;" onclick="document.getElementById('formTambahKategori').style.display='none'">BATAL</button>
-            </div>
-
-            <div style="margin-bottom:30px;">
+            <div class="tambah-kategori-controls">
+              <div id="formTambahKategori" style="display:none;margin-bottom:30px;">
+                <input type="text" id="namaKategoriBaru" placeholder="NAMA KATEGORI BARU">
+                <br><br>
+                <button class="btn btn-small" onclick="addKategori()">TAMBAH</button>
+                <button class="btn btn-small" style="background:#999;" onclick="document.getElementById('formTambahKategori').style.display='none'">BATAL</button>
+              </div>
               <button class="btn btn-small" onclick="document.getElementById('formTambahKategori').style.display='block'; document.getElementById('namaKategoriBaru').focus();">
                 + TAMBAH BARU
               </button>
@@ -266,7 +273,7 @@
           if (role === 'admin') {
             document.getElementById('menuAdd').style.display = 'block';
             document.getElementById('aksiHeader').style.display = 'table-cell';
-            document.getElementById('kelolaKategoriSection').style.display = 'block';
+            document.getElementById('kelolaKategoriSection').style.display = 'flex';
           }
           showPage('home');
           loadKategoriDropdown();
@@ -332,7 +339,6 @@
       });
     }
 
-    // CRUD kategori & barang tetap sama seperti versi sebelumnya
     function addKategori() {
       if (role !== 'admin') return alert('ADMIN ONLY');
       const nama = document.getElementById('namaKategoriBaru').value.trim();
@@ -367,7 +373,91 @@
         });
     }
 
-    // ... (loadTable, openEditModal, closeEditModal, saveEditData, saveData tetap sama seperti versi sebelumnya dengan modal edit barang)
+    function loadTable() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:180px;opacity:0.2">Loading...</td></tr>';
+      db.ref('inventaris').on('value', snap => {
+        tbody.innerHTML = '';
+        if (!snap.exists()) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:180px;font-size:28px;opacity:0.2">NO DATA</td></tr>';
+          return;
+        }
+        snap.forEach(c => {
+          const i = c.val();
+          const key = c.key;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${i.kategori||'LAINNYA'}</td><td>${i.merk||''}</td><td>${i.tipe||''}</td><td>${i.sn || '-'}</td><td>${i.lokasi||''}</td><td>${i.status||''}</td>
+            <td style="display:${role==='admin'?'':'none'}">
+              <button class="btn" style="padding:12px 30px;font-size:13px" onclick="openEditModal('${key}', ${JSON.stringify(i).replace(/'/g, "\\'")})">EDIT</button>
+              <button class="btn" style="background:#ff0000;padding:12px 30px;font-size:13px;margin-left:10px" onclick="if(confirm('DELETE?'))db.ref('inventaris/'+ '${key}').remove().then(()=>loadTable())">DELETE</button>
+            </td>`;
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    function openEditModal(key, data) {
+      if (role !== 'admin') return;
+      currentEditKey = key;
+      document.getElementById('editKategori').value = data.kategori || 'LAINNYA';
+      document.getElementById('editMerk').value = data.merk || '';
+      document.getElementById('editTipe').value = data.tipe || '';
+      document.getElementById('editSn').value = data.sn || '';
+      document.getElementById('editLokasi').value = data.lokasi || '';
+      document.getElementById('editStatus').value = data.status || 'OPERATIONAL';
+      document.getElementById('editKeterangan').value = data.keterangan || '';
+      document.getElementById('editModal').classList.add('active');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('active');
+      currentEditKey = null;
+    }
+
+    function saveEditData() {
+      if (role !== 'admin' || !currentEditKey) return;
+      const d = {
+        kategori: document.getElementById('editKategori').value || 'LAINNYA',
+        merk: document.getElementById('editMerk').value.trim(),
+        tipe: document.getElementById('editTipe').value.trim(),
+        sn: document.getElementById('editSn').value.trim() || '-',
+        lokasi: document.getElementById('editLokasi').value.trim(),
+        status: document.getElementById('editStatus').value,
+        keterangan: document.getElementById('editKeterangan').value.trim() || '-',
+      };
+      if (!d.merk || !d.tipe || !d.lokasi) return alert('LENGKAPI DATA!');
+      db.ref('inventaris/' + currentEditKey).update(d)
+        .then(() => {
+          alert('BARANG BERHASIL DIUPDATE!');
+          closeEditModal();
+          loadTable();
+        });
+    }
+
+    function saveData() {
+      if (role !== 'admin') return alert('ADMIN ONLY');
+      const d = {
+        kategori: document.getElementById('kategori').value || 'LAINNYA',
+        merk: document.getElementById('merk').value.trim(),
+        tipe: document.getElementById('tipe').value.trim(),
+        sn: document.getElementById('sn').value.trim() || '-',
+        lokasi: document.getElementById('lokasi').value.trim(),
+        status: document.getElementById('status').value,
+        keterangan: document.getElementById('keterangan').value.trim() || '-',
+        tanggal_input: new Date().toISOString().split('T')[0]
+      };
+      if (!d.kategori || !d.merk || !d.tipe || !d.lokasi) return alert('LENGKAPI DATA!');
+      db.ref('inventaris').push(d)
+        .then(() => {
+          alert('BARANG BERHASIL DITAMBAHKAN!');
+          document.getElementById('merk').value = '';
+          document.getElementById('tipe').value = '';
+          document.getElementById('sn').value = '';
+          document.getElementById('lokasi').value = '';
+          document.getElementById('keterangan').value = '';
+          showPage('assets');
+        });
+    }
 
     loadKategoriDropdown();
   </script>
