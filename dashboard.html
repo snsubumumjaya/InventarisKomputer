@@ -1,5 +1,5 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -94,7 +94,6 @@
     <div class="menu-item active" onclick="showPage('home')">HOME</div>
     <div class="menu-item" onclick="showPage('assets')">SEMUA ASSET</div>
     <div class="menu-item" id="menuAdd" style="display:none" onclick="showPage('add')">+ TAMBAH BARANG</div>
-    <div class="menu-item" id="menuKategori" style="display:none" onclick="showPage('kategori')">KELOLA KATEGORI</div>
     <div class="menu-item" onclick="alert('2026')">RUSAK / HILANG</div>
   </div>
   <div class="user-info">
@@ -114,7 +113,39 @@
     </div>
     <div id="add" class="content">
       <h2>TAMBAH<br>BARANG</h2>
+
+      <!-- KELOLA KATEGORI DI SINI (hanya admin) -->
+      <div class="form-box" id="kelolaKategoriSection" style="display:none;">
+        <h3 style="font-size:28px;margin-bottom:40px">KELOLA KATEGORI</h3>
+
+        <div class="form-box" id="formTambahKategori" style="display:none;margin-bottom:60px;">
+          <input type="text" id="namaKategoriBaru" placeholder="NAMA KATEGORI BARU">
+          <br><br>
+          <button class="btn" onclick="addKategori()">TAMBAH KATEGORI</button>
+          <button class="btn" style="background:#999;" onclick="document.getElementById('formTambahKategori').style.display='none'">BATAL</button>
+        </div>
+
+        <div style="margin-bottom:40px;">
+          <button class="btn" onclick="document.getElementById('formTambahKategori').style.display='block'; document.getElementById('namaKategoriBaru').focus();">
+            + TAMBAH KATEGORI BARU
+          </button>
+        </div>
+
+        <table style="width:100%">
+          <thead>
+            <tr>
+              <th style="text-align:left;font-size:14px;letter-spacing:6px;opacity:0.7">NO</th>
+              <th style="text-align:left;font-size:14px;letter-spacing:6px;opacity:0.7">NAMA KATEGORI</th>
+              <th>ACTION</th>
+            </tr>
+          </thead>
+          <tbody id="kategoriTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- FORM TAMBAH BARANG (selalu tampil) -->
       <div class="form-box">
+        <h3 style="font-size:28px;margin-bottom:40px">FORM TAMBAH BARANG BARU</h3>
         <select id="kategori">
           <option value="">— PILIH KATEGORI —</option>
         </select>
@@ -130,38 +161,7 @@
         </select>
         <textarea id="keterangan" placeholder="KETERANGAN TAMBAHAN (opsional)"></textarea>
         <br><br>
-        <button class="btn" onclick="saveData()">SIMPAN</button>
-      </div>
-    </div>
-    <div id="kategori" class="content">
-      <h2>KELOLA<br>KATEGORI</h2>
-
-      <div class="form-box" id="formTambahKategori" style="display:none;">
-        <h3 style="font-size:28px;margin-bottom:40px">TAMBAH KATEGORI BARU</h3>
-        <input type="text" id="namaKategoriBaru" placeholder="NAMA KATEGORI BARU">
-        <br><br>
-        <button class="btn" onclick="addKategori()">TAMBAH KATEGORI</button>
-        <button class="btn" style="background:#999;" onclick="document.getElementById('formTambahKategori').style.display='none'">BATAL</button>
-      </div>
-
-      <div style="margin-bottom:40px;">
-        <button class="btn" id="btnTambahKategori" style="display:none;" onclick="document.getElementById('formTambahKategori').style.display='block'; document.getElementById('namaKategoriBaru').focus();">
-          + TAMBAH KATEGORI BARU
-        </button>
-      </div>
-
-      <div class="form-box">
-        <h3 style="font-size:28px;margin-bottom:40px">DAFTAR KATEGORI SAAT INI</h3>
-        <table style="width:100%">
-          <thead>
-            <tr>
-              <th style="text-align:left;font-size:14px;letter-spacing:6px;opacity:0.7">NO</th>
-              <th style="text-align:left;font-size:14px;letter-spacing:6px;opacity:0.7">NAMA KATEGORI</th>
-              <th id="aksiKategoriHeader" style="display:none">ACTION</th>
-            </tr>
-          </thead>
-          <tbody id="kategoriTableBody"></tbody>
-        </table>
+        <button class="btn" onclick="saveData()">SIMPAN BARANG</button>
       </div>
     </div>
   </div>
@@ -183,7 +183,7 @@
     const db = firebase.database();
     let role = 'staff';
 
-    // Default kategori dengan error handling
+    // Default kategori
     const defaultKategori = ["Laptop","PC Desktop","Monitor","Printer","Aksesoris","Jaringan","Lainnya"];
     db.ref('kategori').once('value')
       .then(snap => {
@@ -191,37 +191,24 @@
           defaultKategori.forEach(nama => db.ref('kategori').push({nama}));
         }
       })
-      .catch(err => {
-        console.error("Error membuat default kategori:", err);
-        alert("Gagal membuat default kategori: " + err.message);
-      });
+      .catch(err => console.error("Error default kategori:", err));
 
-    // Auth + verification check dengan error handling
     auth.onAuthStateChanged(u => {
       if (!u) { location.href = "login.html"; return; }
       if (!u.emailVerified) { auth.signOut().then(() => location.href = "login.html?msg=verify"); return; }
       db.ref('users/' + u.uid).once('value')
         .then(s => {
           const d = s.val();
-          if (!d) {
-            alert("Data user tidak ditemukan!");
-            auth.signOut();
-            return;
-          }
           role = d.role || 'staff';
           document.getElementById('userInfo').innerText = d.nama + " – " + role.toUpperCase();
           if (role === 'admin') {
             document.getElementById('menuAdd').style.display = 'block';
-            document.getElementById('menuKategori').style.display = 'block';
             document.getElementById('aksiHeader').style.display = 'table-cell';
-            document.getElementById('btnTambahKategori').style.display = 'block';
-            document.getElementById('aksiKategoriHeader').style.display = 'table-cell';
+            document.getElementById('kelolaKategoriSection').style.display = 'block'; // Tampilkan kelola kategori untuk admin
           }
           showPage('home');
-        })
-        .catch(err => {
-          console.error("Error load user:", err);
-          alert("Error load data user: " + err.message);
+          loadKategoriDropdown(); // Load dropdown selalu
+          if (role === 'admin') loadKategoriTable(); // Load tabel kategori hanya admin
         });
     });
 
@@ -231,9 +218,11 @@
       document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
       const activeMenu = Array.from(document.querySelectorAll('.menu-item')).find(m => m.onclick && m.onclick.toString().includes(id));
       if (activeMenu) activeMenu.classList.add('active');
-      if (id === 'kategori') loadKategoriTable();
       if (id === 'assets') loadTable();
-      if (id === 'add') loadKategoriDropdown();
+      if (id === 'add') {
+        loadKategoriDropdown();
+        if (role === 'admin') loadKategoriTable();
+      }
     }
 
     function loadKategoriDropdown() {
@@ -249,12 +238,76 @@
             select.appendChild(opt);
           });
         })
-        .catch(err => {
-          console.error("Error load dropdown kategori:", err);
-          select.innerHTML += '<option style="color:#ff0000">ERROR LOAD KATEGORI</option>';
-        });
+        .catch(err => console.error("Error dropdown:", err));
     }
 
+    function loadKategoriTable() {
+      const tbody = document.getElementById('kategoriTableBody');
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:80px;opacity:0.5">Loading...</td></tr>';
+      db.ref('kategori').on('value', snap => {
+        const data = snap.val() || {};
+        tbody.innerHTML = '';
+        if (Object.keys(data).length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:80px;opacity:0.5">BELUM ADA KATEGORI</td></tr>';
+          return;
+        }
+        let no = 1;
+        Object.entries(data).forEach(([key, val]) => {
+          const nama = val.nama || 'Unknown';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${no++}</td>
+            <td>${nama}</td>
+            <td>
+              <button class="btn" style="padding:12px 30px;font-size:13px" onclick="editKategori('${key}', '${nama}')">EDIT</button>
+              <button class="btn" style="background:#ff0000;padding:12px 30px;font-size:13px;margin-left:10px" onclick="deleteKategori('${key}')">DELETE</button>
+            </td>`;
+          tbody.appendChild(tr);
+        });
+      }, err => {
+        tbody.innerHTML = `<tr><td colspan="3" style="color:#ff0000;padding:80px;text-align:center">ERROR: ${err.message}</td></tr>`;
+      });
+    }
+
+    // Fungsi CRUD kategori (sama seperti sebelumnya)
+    function addKategori() {
+      if (role !== 'admin') return alert('ADMIN ONLY');
+      const nama = document.getElementById('namaKategoriBaru').value.trim();
+      if (!nama) return alert('ISI NAMA KATEGORI!');
+      db.ref('kategori').push({nama})
+        .then(() => {
+          alert('KATEGORI DITAMBAHKAN!');
+          document.getElementById('namaKategoriBaru').value = '';
+          document.getElementById('formTambahKategori').style.display = 'none';
+          loadKategoriDropdown(); // Update dropdown
+        })
+        .catch(err => alert('Error: ' + err.message));
+    }
+
+    function editKategori(key, namaSaatIni) {
+      if (role !== 'admin') return;
+      const namaBaru = prompt('EDIT NAMA KATEGORI:', namaSaatIni);
+      if (namaBaru === null || !namaBaru.trim()) return;
+      db.ref('kategori/' + key).update({nama: namaBaru.trim()})
+        .then(() => {
+          alert('KATEGORI DIUPDATE!');
+          loadKategoriDropdown();
+        })
+        .catch(err => alert('Error: ' + err.message));
+    }
+
+    function deleteKategori(key) {
+      if (role !== 'admin') return;
+      if (!confirm('YAKIN HAPUS KATEGORI INI?')) return;
+      db.ref('kategori/' + key).remove()
+        .then(() => {
+          alert('KATEGORI DIHAPUS!');
+          loadKategoriDropdown();
+        })
+        .catch(err => alert('Error: ' + err.message));
+    }
+
+    // Fungsi loadTable dan saveData tetap sama
     function loadTable() {
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:180px;opacity:0.2">Loading...</td></tr>';
@@ -274,10 +327,6 @@
             </td>`;
           tbody.appendChild(tr);
         });
-      }, err => {
-        tbody.innerHTML = `<tr><td colspan="7" style="color:#ff0000;padding:100px;text-align:center">
-          ERROR LOAD DATA INVENTARIS:<br>${err.message}
-        </td></tr>`;
       });
     }
 
@@ -304,80 +353,7 @@
           document.getElementById('keterangan').value = '';
           showPage('assets');
         })
-        .catch(err => alert('Error simpan data: ' + err.message));
-    }
-
-    function loadKategoriTable() {
-      const tbody = document.getElementById('kategoriTableBody');
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:100px;opacity:0.5">Loading kategori...</td></tr>';
-      
-      db.ref('kategori').on('value', snap => {
-        const data = snap.val() || {};
-        tbody.innerHTML = '';
-        if (Object.keys(data).length === 0) {
-          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:100px;opacity:0.5">BELUM ADA KATEGORI<br>(Default akan dibuat otomatis oleh admin)</td></tr>';
-          return;
-        }
-        let no = 1;
-        Object.entries(data).forEach(([key, val]) => {
-          const nama = val.nama || 'Unknown';
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${no++}</td>
-            <td>${nama}</td>
-            <td style="display:${role==='admin'?'':'none'}">
-              <button class="btn" style="padding:12px 30px;font-size:13px" onclick="editKategori('${key}', '${nama}')">EDIT</button>
-              <button class="btn" style="background:#ff0000;padding:12px 30px;font-size:13px;margin-left:10px" onclick="deleteKategori('${key}')">DELETE</button>
-            </td>`;
-          tbody.appendChild(tr);
-        });
-      }, err => {
-        tbody.innerHTML = `<tr><td colspan="3" style="color:#ff0000;padding:100px;text-align:center;font-weight:900">
-          ERROR LOAD KATEGORI:<br>${err.message}<br><br>
-          Cek Firebase Rules atau browser console (F12) untuk detail error.
-        </td></tr>`;
-        console.error("Firebase error load kategori:", err);
-      });
-    }
-
-    function addKategori() {
-      if (role !== 'admin') return alert('ADMIN ONLY');
-      const nama = document.getElementById('namaKategoriBaru').value.trim();
-      if (!nama) return alert('ISI NAMA KATEGORI!');
-      db.ref('kategori').push({nama})
-        .then(() => {
-          alert('KATEGORI BERHASIL DITAMBAHKAN!');
-          document.getElementById('namaKategoriBaru').value = '';
-          document.getElementById('formTambahKategori').style.display = 'none';
-        })
-        .catch(err => {
-          alert('Error tambah kategori: ' + err.message);
-          console.error(err);
-        });
-    }
-
-    function editKategori(key, namaSaatIni) {
-      if (role !== 'admin') return;
-      const namaBaru = prompt('EDIT NAMA KATEGORI:', namaSaatIni);
-      if (namaBaru === null) return;
-      if (!namaBaru.trim()) return alert('NAMA TIDAK BOLEH KOSONG!');
-      db.ref('kategori/' + key).update({nama: namaBaru.trim()})
-        .then(() => alert('KATEGORI BERHASIL DIUPDATE!'))
-        .catch(err => {
-          alert('Error update kategori: ' + err.message);
-          console.error(err);
-        });
-    }
-
-    function deleteKategori(key) {
-      if (role !== 'admin') return;
-      if (!confirm('YAKIN HAPUS KATEGORI INI?\nBarang dengan kategori ini akan jadi "LAINNYA"')) return;
-      db.ref('kategori/' + key).remove()
-        .then(() => alert('KATEGORI BERHASIL DIHAPUS!'))
-        .catch(err => {
-          alert('Error hapus kategori: ' + err.message);
-          console.error(err);
-        });
+        .catch(err => alert('Error: ' + err.message));
     }
 
     loadKategoriDropdown();
