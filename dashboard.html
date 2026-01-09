@@ -4,172 +4,111 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SN SUB UMUM – 2026</title>
+
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+
   <style>
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
     html,body{height:100%;margin:0;background:#fff;color:#000;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;overflow-x:hidden}
-   
-    /* GRID INDUSTRIAL MINIMAL */
-    body::before{
-      content:"";position:fixed;inset:0;z-index:-1;
-      background:linear-gradient(rgba(0,0,0,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.04) 1px,transparent 1px);
-      background-size:45px 45px;pointer-events:none;
-    }
-    body::after{
-      content:"";position:fixed;inset:0;z-index:-1;
-      background:linear-gradient(#000 2px,transparent 2px),linear-gradient(90deg,#000 2px,transparent 2px);
-      background-size:180px 180px;opacity:0.07;pointer-events:none;
-    }
-    /* SIDEBAR FULL SAMPE BAWAH */
-    .sidebar{
-      position:fixed;left:0;top:0;bottom:0;width:300px;background:#000;color:#fff;
-      padding:60px 50px;z-index:999;box-shadow:50px 0 80px rgba(0,0,0,0.4);
-    }
+    body::before{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(rgba(0,0,0,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.04) 1px,transparent 1px);background-size:45px 45px;pointer-events:none;}
+    body::after{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(#000 2px,transparent 2px),linear-gradient(90deg,#000 2px,transparent 2px);background-size:180px 180px;opacity:0.07;pointer-events:none;}
+
+    .sidebar{position:fixed;left:0;top:0;bottom:0;width:300px;background:#000;color:#fff;padding:60px 50px;z-index:999;box-shadow:50px 0 80px rgba(0,0,0,0.4);}
     .logo{margin-bottom:120px}
-    .logo h1{
-      font-size:38px;font-weight:900;letter-spacing:-3px;line-height:0.95;
-      background:#fff;color:#000;padding:25px 35px;display:inline-block;
-      border:6px solid #000;box-shadow:12px 12px 0 #000;
-    }
-    .menu-item{
-      font-size:17px;font-weight:900;letter-spacing:-0.3px;margin:30px 0;
-      cursor:pointer;transition:all .35s;opacity:0.8;padding-left:0;position:relative;
-      padding-bottom:8px;
-    }
+    .logo h1{font-size:38px;font-weight:900;letter-spacing:-3px;line-height:0.95;background:#fff;color:#000;padding:25px 35px;display:inline-block;border:6px solid #000;box-shadow:12px 12px 0 #000;}
+
+    .menu-item{font-size:17px;font-weight:900;letter-spacing:-0.3px;margin:30px 0;cursor:pointer;transition:all .35s;opacity:0.8;padding-left:0;position:relative;padding-bottom:8px;}
     .menu-item:hover,.menu-item.active{opacity:1}
-    .menu-item::after{
-      content:"";position:absolute;left:0;bottom:0;width:0;height:3px;background:#fff;
-      transition:all .35s;
-    }
+    .menu-item::after{content:"";position:absolute;left:0;bottom:0;width:0;height:3px;background:#fff;transition:all .35s;}
     .menu-item:hover::after,.menu-item.active::after{width:40px}
-    /* MAIN CONTENT */
+
     .main{margin-left:300px;padding:140px 100px 140px;min-height:100vh}
     .content{display:none}
     .content.active{display:block}
     h2{font-size:64px;font-weight:900;letter-spacing:-6px;line-height:0.95;margin-bottom:80px}
-    /* TABLE */
+
     table{width:100%;border-collapse:separate;border-spacing:0 25px}
     th{font-size:12px;letter-spacing:6px;text-transform:uppercase;opacity:0.7;padding-bottom:20px}
     td{font-size:18px;font-weight:400;padding:20px 0;border-bottom:5px solid #000}
-    /* FORM */
-    .form-box{
-      background:#fafafa;padding:60px 80px;border:8px solid #000;
-    }
-    .form-box input, .form-box select, .form-box textarea{
-      width:100%;padding:20px 0;background:none;border:none;border-bottom:5px solid #000;
-      font-size:22px;margin:40px 0;outline:none;
-    }
-    /* LAYOUT SIDE BY SIDE DI TAMBAH BARANG */
-    .add-layout{
-      display:flex;gap:100px;flex-wrap:wrap;align-items:flex-start;justify-content:center;
-    }
+
+    .form-box{background:#fafafa;padding:60px 80px;border:8px solid #000;}
+    .form-box input, .form-box select, .form-box textarea{width:100%;padding:20px 0;background:none;border:none;border-bottom:5px solid #000;font-size:22px;margin:40px 0;outline:none;}
+
+    .add-layout{display:flex;gap:100px;flex-wrap:wrap;align-items:flex-start;justify-content:center;}
     .left-tambah-barang{flex:1;min-width:600px;max-width:900px;}
-    .right-kelola-kategori{
-      flex:0 0 500px;display:none;flex-direction:column;
-    }
-    .right-kelola-kategori .form-box{
-      padding:60px 70px; /* top padding sama dengan kiri biar border atas sejajar */
-      display:flex;flex-direction:column;height:100%;
-    }
-    .right-kelola-kategori h3{
-      font-size:26px;margin-bottom:30px;letter-spacing:-2px;
-    }
-    .right-kelola-kategori .tambah-kategori-controls{
-      margin-bottom:20px;
-    }
-    .right-kelola-kategori table{
-      flex:1;
-    }
-    .right-kelola-kategori th{
-      font-size:11px;letter-spacing:5px;
-    }
-    .right-kelola-kategori td{
-      font-size:17px;
-    }
-    /* ACTION COLUMN CENTER */
-    .right-kelola-kategori td:last-child {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      height: 100%;
-    }
-    /* BUTTON */
-    .btn{
-      padding:16px 55px;background:#000;color:#fff;font-size:15px;font-weight:900;
-      letter-spacing:5px;border:none;cursor:pointer;transition:.35s;margin-right:15px;
-    }
+    .right-kelola-kategori{flex:0 0 500px;display:none;flex-direction:column;}
+    .right-kelola-kategori .form-box{padding:60px 70px;display:flex;flex-direction:column;height:100%;}
+    .right-kelola-kategori h3{font-size:26px;margin-bottom:30px;letter-spacing:-2px;}
+    .right-kelola-kategori .tambah-kategori-controls{margin-bottom:20px;}
+    .right-kelola-kategori table{flex:1;}
+    .right-kelola-kategori th{font-size:11px;letter-spacing:5px;}
+    .right-kelola-kategori td{font-size:17px;}
+    .right-kelola-kategori td:last-child {display:flex;justify-content:center;align-items:center;gap:10px;height:100%;}
+
+    .btn{padding:16px 55px;background:#000;color:#fff;font-size:15px;font-weight:900;letter-spacing:5px;border:none;cursor:pointer;transition:.35s;margin-right:15px;}
     .btn:hover{background:#ff0000}
-    .btn-small{
-      padding:10px 25px;font-size:13px;
-    }
-    /* USER INFO + LOGOUT */
-    .user-info{
-      position:fixed;right:70px;top:60px;z-index:999;background:#fff;
-      padding:16px 35px;border:6px solid #000;font-size:13px;letter-spacing:6px;font-weight:900;
-      display:flex;align-items:center;gap:40px;
-    }
-    .logout-btn{
-      background:none;border:5px solid #000;padding:12px 35px;font-size:13px;
-      font-weight:900;letter-spacing:5px;cursor:pointer;transition:.35s;
-    }
+    .btn-small{padding:10px 25px;font-size:13px;}
+
+    .user-info{position:fixed;right:70px;top:60px;z-index:999;background:#fff;padding:16px 35px;border:6px solid #000;font-size:13px;letter-spacing:6px;font-weight:900;display:flex;align-items:center;gap:40px;}
+    .logout-btn{background:none;border:5px solid #000;padding:12px 35px;font-size:13px;font-weight:900;letter-spacing:5px;cursor:pointer;transition:.35s;}
     .logout-btn:hover{background:#000;color:#fff}
-    /* FOOTER */
-    .footer{
-      position:fixed;bottom:30px;left:300px;right:0;text-align:center;
-      font-size:14px;letter-spacing:8px;font-weight:900;color:#000;
-      z-index:1000;
-    }
-    /* MODAL EDIT BARANG */
-    .modal{
-      display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;
-    }
+
+    .footer{position:fixed;bottom:30px;left:300px;right:0;text-align:center;font-size:14px;letter-spacing:8px;font-weight:900;color:#000;z-index:1000;}
+
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;}
     .modal.active{display:flex}
-    .modal-box{
-      background:#fafafa;padding:80px;width:90%;max-width:900px;border:8px solid #000;position:relative;
-    }
-    .close-modal{
-      position:absolute;top:30px;right:50px;font-size:40px;cursor:pointer;
-    }
+    .modal-box{background:#fafafa;padding:80px;width:90%;max-width:900px;border:8px solid #000;position:relative;}
+    .close-modal{position:absolute;top:30px;right:50px;font-size:40px;cursor:pointer;}
   </style>
 </head>
+
 <body>
   <div class="sidebar">
-    <div class="logo">
-      <h1>INVENTARIS<br>KOMPUTER</h1>
-    </div>
-    <div class="menu-item active" onclick="showPage('home')">HOME</div>
-    <div class="menu-item" onclick="showPage('assets')">SEMUA ASSET</div>
-    <div class="menu-item" id="menuAdd" style="display:none" onclick="showPage('add')">+ TAMBAH BARANG</div>
-    <div class="menu-item" onclick="showPage('rusak')">RUSAK / HILANG</div>
+    <div class="logo"><h1>INVENTARIS<br>KOMPUTER</h1></div>
+
+    <div class="menu-item active" data-page="home">HOME</div>
+    <div class="menu-item" data-page="assets">SEMUA ASSET</div>
+    <div class="menu-item" id="menuAdd" style="display:none" data-page="add">+ TAMBAH BARANG</div>
+    <div class="menu-item" data-page="rusak">RUSAK / HILANG</div>
   </div>
+
   <div class="user-info">
     <span id="userInfo">LOADING...</span>
     <button class="logout-btn" onclick="firebase.auth().signOut().then(()=>location.href='login.html')">LOGOUT</button>
   </div>
+
   <div class="main">
     <div id="home" class="content active">
       <h2>DASHBOARD<br>2026</h2>
     </div>
+
     <div id="assets" class="content">
       <h2>SEMUA<br>ASSET</h2>
       <table>
-        <thead><tr><th>KATEGORI</th><th>MERK</th><th>TIPE</th><th>SN</th><th>LOKASI</th><th>STATUS</th><th id="aksiHeader" style="display:none">ACTION</th></tr></thead>
+        <thead>
+          <tr>
+            <th>KATEGORI</th>
+            <th>MERK</th>
+            <th>TIPE</th>
+            <th>SN</th>
+            <th>LOKASI</th>
+            <th>STATUS</th>
+            <th id="aksiHeader" style="display:none">ACTION</th>
+          </tr>
+        </thead>
         <tbody id="tableBody"></tbody>
       </table>
     </div>
+
     <div id="add" class="content">
       <h2>TAMBAH<br>BARANG</h2>
 
       <div class="add-layout">
-        <!-- KIRI: FORM TAMBAH BARANG -->
         <div class="left-tambah-barang">
           <div class="form-box">
-            <select id="kategori">
-              <option value="">— PILIH KATEGORI —</option>
-            </select>
+            <select id="kategori"><option value="">— PILIH KATEGORI —</option></select>
             <input type="text" id="merk" placeholder="MERK">
             <input type="text" id="tipe" placeholder="TIPE / SPESIFIKASI">
             <input type="text" id="sn" placeholder="SERIAL NUMBER (opsional)">
@@ -186,7 +125,6 @@
           </div>
         </div>
 
-        <!-- KANAN: KELOLA KATEGORI -->
         <div class="right-kelola-kategori" id="kelolaKategoriSection">
           <div class="form-box">
             <h3>KELOLA KATEGORI</h3>
@@ -198,9 +136,8 @@
                 <button class="btn btn-small" onclick="addKategori()">TAMBAH</button>
                 <button class="btn btn-small" style="background:#999;" onclick="document.getElementById('formTambahKategori').style.display='none'">BATAL</button>
               </div>
-              <button class="btn btn-small" onclick="document.getElementById('formTambahKategori').style.display='block'; document.getElementById('namaKategoriBaru').focus();">
-                + TAMBAH BARU
-              </button>
+
+              <button class="btn btn-small" onclick="document.getElementById('formTambahKategori').style.display='block'; document.getElementById('namaKategoriBaru').focus();">+ TAMBAH BARU</button>
             </div>
 
             <table>
@@ -218,7 +155,6 @@
       </div>
     </div>
 
-    <!-- MENU BARU: RUSAK / HILANG (tabel kosong untuk uji coba) -->
     <div id="rusak" class="content">
       <h2>RUSAK /<br>HILANG</h2>
       <table>
@@ -234,7 +170,6 @@
           </tr>
         </thead>
         <tbody id="rusakTableBody">
-          <!-- Tabel kosong untuk uji coba -->
           <tr>
             <td colspan="7" style="text-align:center;padding:180px;opacity:0.3;font-size:28px;">
               BELUM ADA DATA RUSAK / HILANG<br>
@@ -245,11 +180,9 @@
       </table>
     </div>
   </div>
-  <div class="footer">
-    SN SUB UMUM – INTERNAL INVENTORY SYSTEM 2026
-  </div>
 
-  <!-- MODAL EDIT BARANG -->
+  <div class="footer">SN SUB UMUM – INTERNAL INVENTORY SYSTEM 2026</div>
+
   <div class="modal" id="editModal">
     <div class="modal-box">
       <span class="close-modal" onclick="closeEditModal()">×</span>
@@ -283,222 +216,376 @@
       messagingSenderId: "915927761008",
       appId: "1:915927761008:web:a4b2e71159d00501fdf4b5"
     };
-    firebase.initializeApp(firebaseConfig);
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
     const auth = firebase.auth();
     const db = firebase.database();
-    let role = 'staff';
+
+    const inventarisRef = db.ref("inventaris");
+    const kategoriRef = db.ref("kategori");
+
+    let role = "staff";
     let currentEditKey = null;
 
-    // Default kategori
-    const defaultKategori = ["Laptop","PC Desktop","Monitor","Printer","Aksesoris","Jaringan","Lainnya"];
-    db.ref('kategori').once('value')
-      .then(snap => {
-        if (!snap.exists() || Object.keys(snap.val() || {}).length === 0) {
-          defaultKategori.forEach(nama => db.ref('kategori').push({nama}));
-        }
-      });
+    let inventarisHandler = null;
+    let kategoriTableHandler = null;
 
-    auth.onAuthStateChanged(u => {
-      if (!u) { location.href = "login.html"; return; }
-      if (!u.emailVerified) { auth.signOut().then(() => location.href = "login.html?msg=verify"); return; }
-      db.ref('users/' + u.uid).once('value')
-        .then(s => {
-          const d = s.val();
-          role = d.role || 'staff';
-          document.getElementById('userInfo').innerText = d.nama + " – " + role.toUpperCase();
-          if (role === 'admin') {
-            document.getElementById('menuAdd').style.display = 'block';
-            document.getElementById('aksiHeader').style.display = 'table-cell';
-            document.getElementById('kelolaKategoriSection').style.display = 'block';
-          }
-          showPage('home');
-          loadKategoriDropdown();
-          if (role === 'admin') loadKategoriTable();
-        });
-    });
+    function $(id) {
+      return document.getElementById(id);
+    }
 
-    function showPage(id) {
-      document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-      const activeMenu = Array.from(document.querySelectorAll('.menu-item')).find(m => m.onclick && m.onclick.toString().includes(id));
-      if (activeMenu) activeMenu.classList.add('active');
-      if (id === 'assets') loadTable();
-      if (id === 'add') {
+    function tdText(v) {
+      const td = document.createElement("td");
+      td.textContent = (v === undefined || v === null) ? "" : String(v);
+      return td;
+    }
+
+    function makeBtn(text, className, onClick) {
+      const b = document.createElement("button");
+      b.className = className;
+      b.textContent = text;
+      b.type = "button";
+      b.addEventListener("click", onClick);
+      return b;
+    }
+
+    function setActiveMenu(pageId) {
+      document.querySelectorAll(".menu-item").forEach(m => m.classList.remove("active"));
+      const el = document.querySelector('.menu-item[data-page="' + pageId + '"]');
+      if (el) el.classList.add("active");
+    }
+
+    function showPage(pageId) {
+      document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
+      const page = $(pageId);
+      if (page) page.classList.add("active");
+
+      setActiveMenu(pageId);
+
+      if (pageId === "assets") startInventarisListener();
+      if (pageId === "add") {
         loadKategoriDropdown();
-        if (role === 'admin') loadKategoriTable();
-      }
-      if (id === 'rusak') {
-        // Nanti bisa load data rusak/hilang di sini
+        if (role === "admin") startKategoriTableListener();
       }
     }
 
-    function loadKategoriDropdown() {
-      const select = document.getElementById('kategori');
-      const editSelect = document.getElementById('editKategori');
+    function wireMenu() {
+      document.querySelectorAll(".menu-item[data-page]").forEach(el => {
+        el.addEventListener("click", () => showPage(el.dataset.page));
+      });
+    }
+
+    async function ensureDefaultKategoriIfEmpty() {
+      const defaultKategori = ["Laptop", "PC Desktop", "Monitor", "Printer", "Aksesoris", "Jaringan", "Lainnya"];
+      const snap = await kategoriRef.once("value");
+      const empty = !snap.exists() || Object.keys(snap.val() || {}).length === 0;
+      if (!empty) return;
+
+      const updates = {};
+      defaultKategori.forEach(nama => {
+        const key = kategoriRef.push().key;
+        updates["kategori/" + key] = { nama };
+      });
+      await db.ref().update(updates);
+    }
+
+    async function loadKategoriDropdown() {
+      const select = $("kategori");
+      const editSelect = $("editKategori");
+
       select.innerHTML = '<option value="">— PILIH KATEGORI —</option>';
-      editSelect.innerHTML = '';
-      db.ref('kategori').once('value')
-        .then(snap => {
-          const data = snap.val() || {};
-          Object.keys(data).forEach(key => {
-            const nama = data[key].nama;
-            const opt = document.createElement('option');
-            opt.value = nama;
-            opt.textContent = nama;
-            select.appendChild(opt.cloneNode(true));
-            editSelect.appendChild(opt.cloneNode(true));
-          });
-        });
+      editSelect.innerHTML = "";
+
+      const snap = await kategoriRef.once("value");
+      const data = snap.val() || {};
+
+      Object.keys(data).forEach(key => {
+        const nama = (data[key] && data[key].nama) ? data[key].nama : "Unknown";
+
+        const opt1 = document.createElement("option");
+        opt1.value = nama;
+        opt1.textContent = nama;
+
+        const opt2 = document.createElement("option");
+        opt2.value = nama;
+        opt2.textContent = nama;
+
+        select.appendChild(opt1);
+        editSelect.appendChild(opt2);
+      });
     }
 
-    function loadKategoriTable() {
-      const tbody = document.getElementById('kategoriTableBody');
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:60px;opacity:0.5">Loading...</td></tr>';
-      db.ref('kategori').on('value', snap => {
+    function startKategoriTableListener() {
+      const tbody = $("kategoriTableBody");
+
+      if (kategoriTableHandler) kategoriRef.off("value", kategoriTableHandler);
+
+      kategoriTableHandler = (snap) => {
         const data = snap.val() || {};
-        tbody.innerHTML = '';
-        if (Object.keys(data).length === 0) {
-          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:60px;opacity:0.5">BELUM ADA KATEGORI</td></tr>';
+        const keys = Object.keys(data);
+
+        tbody.innerHTML = "";
+
+        if (keys.length === 0) {
+          const tr = document.createElement("tr");
+          const td = document.createElement("td");
+          td.colSpan = 3;
+          td.style.textAlign = "center";
+          td.style.padding = "60px";
+          td.style.opacity = "0.5";
+          td.textContent = "BELUM ADA KATEGORI";
+          tr.appendChild(td);
+          tbody.appendChild(tr);
           return;
         }
+
         let no = 1;
-        Object.entries(data).forEach(([key, val]) => {
-          const nama = val.nama || 'Unknown';
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${no++}</td>
-            <td>${nama}</td>
-            <td>
-              <button class="btn btn-small" onclick="editKategori('${key}', '${nama}')">EDIT</button>
-              <button class="btn btn-small" style="background:#ff0000;" onclick="deleteKategori('${key}')">DELETE</button>
-            </td>`;
+        keys.forEach(key => {
+          const nama = (data[key] && data[key].nama) ? data[key].nama : "Unknown";
+
+          const tr = document.createElement("tr");
+          tr.appendChild(tdText(no++));
+          tr.appendChild(tdText(nama));
+
+          const actionTd = document.createElement("td");
+          const editB = makeBtn("EDIT", "btn btn-small", () => editKategori(key, nama));
+          const delB = makeBtn("DELETE", "btn btn-small", () => deleteKategori(key));
+          delB.style.background = "#ff0000";
+
+          actionTd.appendChild(editB);
+          actionTd.appendChild(delB);
+
+          tr.appendChild(actionTd);
           tbody.appendChild(tr);
         });
-      });
+      };
+
+      kategoriRef.on("value", kategoriTableHandler);
     }
 
-    function addKategori() {
-      if (role !== 'admin') return alert('ADMIN ONLY');
-      const nama = document.getElementById('namaKategoriBaru').value.trim();
-      if (!nama) return alert('ISI NAMA KATEGORI!');
-      db.ref('kategori').push({nama})
-        .then(() => {
-          alert('KATEGORI DITAMBAHKAN!');
-          document.getElementById('namaKategoriBaru').value = '';
-          document.getElementById('formTambahKategori').style.display = 'none';
-          loadKategoriDropdown();
-        });
-    }
+    function startInventarisListener() {
+      const tbody = $("tableBody");
 
-    function editKategori(key, namaSaatIni) {
-      if (role !== 'admin') return;
-      const namaBaru = prompt('EDIT NAMA KATEGORI:', namaSaatIni);
-      if (namaBaru === null || !namaBaru.trim()) return;
-      db.ref('kategori/' + key).update({nama: namaBaru.trim()})
-        .then(() => {
-          alert('KATEGORI DIUPDATE!');
-          loadKategoriDropdown();
-        });
-    }
+      if (inventarisHandler) inventarisRef.off("value", inventarisHandler);
 
-    function deleteKategori(key) {
-      if (role !== 'admin') return;
-      if (!confirm('YAKIN HAPUS KATEGORI INI?')) return;
-      db.ref('kategori/' + key).remove()
-        .then(() => {
-          alert('KATEGORI DIHAPUS!');
-          loadKategoriDropdown();
-        });
-    }
+      inventarisHandler = (snap) => {
+        tbody.innerHTML = "";
 
-    function loadTable() {
-      const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:180px;opacity:0.2">Loading...</td></tr>';
-      db.ref('inventaris').on('value', snap => {
-        tbody.innerHTML = '';
         if (!snap.exists()) {
-          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:180px;font-size:28px;opacity:0.2">NO DATA</td></tr>';
+          const tr = document.createElement("tr");
+          const td = document.createElement("td");
+          td.colSpan = (role === "admin") ? 7 : 6;
+          td.style.textAlign = "center";
+          td.style.padding = "180px";
+          td.style.fontSize = "28px";
+          td.style.opacity = "0.2";
+          td.textContent = "NO DATA";
+          tr.appendChild(td);
+          tbody.appendChild(tr);
           return;
         }
+
         snap.forEach(c => {
-          const i = c.val();
+          const i = c.val() || {};
           const key = c.key;
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${i.kategori||'LAINNYA'}</td><td>${i.merk||''}</td><td>${i.tipe||''}</td><td>${i.sn || '-'}</td><td>${i.lokasi||''}</td><td>${i.status||''}</td>
-            <td style="display:${role==='admin'?'':'none'}">
-              <button class="btn" style="padding:12px 30px;font-size:13px" onclick="openEditModal('${key}', ${JSON.stringify(i).replace(/'/g, "\\'")})">EDIT</button>
-              <button class="btn" style="background:#ff0000;padding:12px 30px;font-size:13px;margin-left:10px" onclick="if(confirm('DELETE?'))db.ref('inventaris/'+ '${key}').remove().then(()=>loadTable())">DELETE</button>
-            </td>`;
+
+          const tr = document.createElement("tr");
+          tr.appendChild(tdText(i.kategori || "LAINNYA"));
+          tr.appendChild(tdText(i.merk || ""));
+          tr.appendChild(tdText(i.tipe || ""));
+          tr.appendChild(tdText(i.sn || "-"));
+          tr.appendChild(tdText(i.lokasi || ""));
+          tr.appendChild(tdText(i.status || ""));
+
+          if (role === "admin") {
+            const actionTd = document.createElement("td");
+
+            const editB = makeBtn("EDIT", "btn", () => openEditModal(key, i));
+            editB.style.padding = "12px 30px";
+            editB.style.fontSize = "13px";
+
+            const delB = makeBtn("DELETE", "btn", async () => {
+              const ok = confirm("DELETE?");
+              if (!ok) return;
+              await inventarisRef.child(key).remove();
+            });
+
+            delB.style.background = "#ff0000";
+            delB.style.padding = "12px 30px";
+            delB.style.fontSize = "13px";
+            delB.style.marginLeft = "10px";
+
+            actionTd.appendChild(editB);
+            actionTd.appendChild(delB);
+
+            tr.appendChild(actionTd);
+          }
+
           tbody.appendChild(tr);
         });
-      });
+      };
+
+      inventarisRef.on("value", inventarisHandler);
     }
 
-    function openEditModal(key, data) {
-      if (role !== 'admin') return;
+    async function openEditModal(key, data) {
+      if (role !== "admin") return;
+
       currentEditKey = key;
-      document.getElementById('editKategori').value = data.kategori || 'LAINNYA';
-      document.getElementById('editMerk').value = data.merk || '';
-      document.getElementById('editTipe').value = data.tipe || '';
-      document.getElementById('editSn').value = data.sn || '';
-      document.getElementById('editLokasi').value = data.lokasi || '';
-      document.getElementById('editStatus').value = data.status || 'OPERATIONAL';
-      document.getElementById('editKeterangan').value = data.keterangan || '';
-      document.getElementById('editModal').classList.add('active');
+
+      await loadKategoriDropdown();
+
+      $("editKategori").value = data.kategori || "LAINNYA";
+      $("editMerk").value = data.merk || "";
+      $("editTipe").value = data.tipe || "";
+      $("editSn").value = data.sn || "";
+      $("editLokasi").value = data.lokasi || "";
+      $("editStatus").value = data.status || "OPERATIONAL";
+      $("editKeterangan").value = data.keterangan || "";
+
+      $("editModal").classList.add("active");
     }
 
     function closeEditModal() {
-      document.getElementById('editModal').classList.remove('active');
+      $("editModal").classList.remove("active");
       currentEditKey = null;
     }
 
-    function saveEditData() {
-      if (role !== 'admin' || !currentEditKey) return;
+    async function saveEditData() {
+      if (role !== "admin" || !currentEditKey) return;
+
       const d = {
-        kategori: document.getElementById('editKategori').value || 'LAINNYA',
-        merk: document.getElementById('editMerk').value.trim(),
-        tipe: document.getElementById('editTipe').value.trim(),
-        sn: document.getElementById('editSn').value.trim() || '-',
-        lokasi: document.getElementById('editLokasi').value.trim(),
-        status: document.getElementById('editStatus').value,
-        keterangan: document.getElementById('editKeterangan').value.trim() || '-',
+        kategori: $("editKategori").value || "LAINNYA",
+        merk: $("editMerk").value.trim(),
+        tipe: $("editTipe").value.trim(),
+        sn: $("editSn").value.trim() || "-",
+        lokasi: $("editLokasi").value.trim(),
+        status: $("editStatus").value,
+        keterangan: $("editKeterangan").value.trim() || "-"
       };
-      if (!d.merk || !d.tipe || !d.lokasi) return alert('LENGKAPI DATA!');
-      db.ref('inventaris/' + currentEditKey).update(d)
-        .then(() => {
-          alert('BARANG BERHASIL DIUPDATE!');
-          closeEditModal();
-          loadTable();
-        });
+
+      if (!d.merk || !d.tipe || !d.lokasi) {
+        alert("LENGKAPI DATA!");
+        return;
+      }
+
+      await inventarisRef.child(currentEditKey).update(d);
+      alert("BARANG BERHASIL DIUPDATE!");
+      closeEditModal();
     }
 
-    function saveData() {
-      if (role !== 'admin') return alert('ADMIN ONLY');
+    async function saveData() {
+      if (role !== "admin") {
+        alert("ADMIN ONLY");
+        return;
+      }
+
       const d = {
-        kategori: document.getElementById('kategori').value || 'LAINNYA',
-        merk: document.getElementById('merk').value.trim(),
-        tipe: document.getElementById('tipe').value.trim(),
-        sn: document.getElementById('sn').value.trim() || '-',
-        lokasi: document.getElementById('lokasi').value.trim(),
-        status: document.getElementById('status').value,
-        keterangan: document.getElementById('keterangan').value.trim() || '-',
-        tanggal_input: new Date().toISOString().split('T')[0]
+        kategori: $("kategori").value || "LAINNYA",
+        merk: $("merk").value.trim(),
+        tipe: $("tipe").value.trim(),
+        sn: $("sn").value.trim() || "-",
+        lokasi: $("lokasi").value.trim(),
+        status: $("status").value,
+        keterangan: $("keterangan").value.trim() || "-",
+        tanggal_input: new Date().toISOString().split("T")[0]
       };
-      if (!d.kategori || !d.merk || !d.tipe || !d.lokasi) return alert('LENGKAPI DATA!');
-      db.ref('inventaris').push(d)
-        .then(() => {
-          alert('BARANG BERHASIL DITAMBAHKAN!');
-          document.getElementById('merk').value = '';
-          document.getElementById('tipe').value = '';
-          document.getElementById('sn').value = '';
-          document.getElementById('lokasi').value = '';
-          document.getElementById('keterangan').value = '';
-          showPage('assets');
-        });
+
+      if (!d.kategori || !d.merk || !d.tipe || !d.lokasi) {
+        alert("LENGKAPI DATA!");
+        return;
+      }
+
+      await inventarisRef.push(d);
+
+      alert("BARANG BERHASIL DITAMBAHKAN!");
+      $("merk").value = "";
+      $("tipe").value = "";
+      $("sn").value = "";
+      $("lokasi").value = "";
+      $("keterangan").value = "";
+
+      showPage("assets");
     }
 
-    loadKategoriDropdown();
+    async function addKategori() {
+      if (role !== "admin") return alert("ADMIN ONLY");
+
+      const nama = $("namaKategoriBaru").value.trim();
+      if (!nama) return alert("ISI NAMA KATEGORI!");
+
+      await kategoriRef.push({ nama });
+
+      alert("KATEGORI DITAMBAHKAN!");
+      $("namaKategoriBaru").value = "";
+      $("formTambahKategori").style.display = "none";
+      loadKategoriDropdown();
+    }
+
+    async function editKategori(key, namaSaatIni) {
+      if (role !== "admin") return;
+
+      const namaBaru = prompt("EDIT NAMA KATEGORI:", namaSaatIni);
+      if (namaBaru === null || !namaBaru.trim()) return;
+
+      await kategoriRef.child(key).update({ nama: namaBaru.trim() });
+      alert("KATEGORI DIUPDATE!");
+      loadKategoriDropdown();
+    }
+
+    async function deleteKategori(key) {
+      if (role !== "admin") return;
+
+      const ok = confirm("YAKIN HAPUS KATEGORI INI?");
+      if (!ok) return;
+
+      await kategoriRef.child(key).remove();
+      alert("KATEGORI DIHAPUS!");
+      loadKategoriDropdown();
+    }
+
+    window.closeEditModal = closeEditModal;
+    window.saveEditData = saveEditData;
+    window.saveData = saveData;
+    window.addKategori = addKategori;
+
+    auth.onAuthStateChanged(async (u) => {
+      if (!u) {
+        location.href = "login.html";
+        return;
+      }
+
+      if (!u.emailVerified) {
+        await auth.signOut();
+        location.href = "login.html?msg=verify";
+        return;
+      }
+
+      const userSnap = await db.ref("users/" + u.uid).once("value");
+      const userData = userSnap.val();
+
+      if (!userData) {
+        await auth.signOut();
+        alert("Profil user tidak ditemukan di database. Silakan register ulang / hubungi admin.");
+        location.href = "login.html";
+        return;
+      }
+
+      role = userData.role || "staff";
+      $("userInfo").innerText = (userData.nama || "USER") + " – " + role.toUpperCase();
+
+      if (role === "admin") {
+        $("menuAdd").style.display = "block";
+        $("aksiHeader").style.display = "table-cell";
+        $("kelolaKategoriSection").style.display = "block";
+        await ensureDefaultKategoriIfEmpty();
+      }
+
+      wireMenu();
+      await loadKategoriDropdown();
+      showPage("home");
+    });
   </script>
 </body>
 </html>
