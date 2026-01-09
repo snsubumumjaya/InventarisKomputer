@@ -143,7 +143,7 @@
     <div class="menu-item active" onclick="showPage('home')">HOME</div>
     <div class="menu-item" onclick="showPage('assets')">SEMUA ASSET</div>
     <div class="menu-item" id="menuAdd" style="display:none" onclick="showPage('add')">+ TAMBAH BARANG</div>
-    <div class="menu-item" onclick="alert('2026')">RUSAK / HILANG</div>
+    <div class="menu-item" onclick="showPage('rusak')">RUSAK / HILANG</div>
   </div>
   <div class="user-info">
     <span id="userInfo">LOADING...</span>
@@ -216,6 +216,33 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- MENU BARU: RUSAK / HILANG (tabel kosong untuk uji coba) -->
+    <div id="rusak" class="content">
+      <h2>RUSAK /<br>HILANG</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>KATEGORI</th>
+            <th>MERK</th>
+            <th>TIPE</th>
+            <th>SN</th>
+            <th>LOKASI</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody id="rusakTableBody">
+          <!-- Tabel kosong untuk uji coba -->
+          <tr>
+            <td colspan="7" style="text-align:center;padding:180px;opacity:0.3;font-size:28px;">
+              BELUM ADA DATA RUSAK / HILANG<br>
+              <span style="font-size:16px;opacity:0.6;">(Fitur ini sedang dikembangkan)</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
   <div class="footer">
@@ -300,6 +327,9 @@
       if (id === 'add') {
         loadKategoriDropdown();
         if (role === 'admin') loadKategoriTable();
+      }
+      if (id === 'rusak') {
+        // Nanti bisa load data rusak/hilang di sini
       }
     }
 
