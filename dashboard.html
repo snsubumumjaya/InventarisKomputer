@@ -31,7 +31,7 @@
       --ui-top: clamp(14px, 2.2vw, 20px);
       --ui-right: clamp(14px, 2.2vw, 20px);
 
-      --uiScale: 0.90;
+      --uiScale: 0.67;
     }
 
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -68,6 +68,7 @@
       pointer-events:none;
     }
 
+    /* UI SCALE wrapper (bukan browser zoom) */
     #app{
       position:relative;
       transform: scale(var(--uiScale));
@@ -142,6 +143,7 @@
       padding:var(--pad-top) var(--pad-x) var(--pad-bot);
     }
 
+    /* User info overlay (auto-hide hanya di page add) */
     #userInfoBox{
       position:absolute;
       top:var(--ui-top);
@@ -192,7 +194,6 @@
       border:none;
       box-shadow:none;
     }
-
     .footer{
       background:transparent;
       border:none;
@@ -202,7 +203,6 @@
       font-weight:900;
       line-height:1;
       color:#000;
-
       opacity:0;
       transform:translateY(8px);
       transition:opacity .15s linear, transform .15s linear;
@@ -496,6 +496,7 @@
   </div>
 
   <script>
+    /* ===== UI SCALE (bukan browser zoom) ===== */
     function applyUIScale(scale) {
       const app = document.getElementById("app");
       if (!app) return;
@@ -512,13 +513,14 @@
       const sW = physicalW / targetW;
       const sH = physicalH / targetH;
 
-      const s = Math.min(0.95, sW, sH);
-      return Number(Math.max(0.85, s).toFixed(3));
+      const s = Math.min(0.67, sW, sH);
+      return Number(Math.max(0.55, s).toFixed(3));
     }
 
     applyUIScale(calcAutoScale());
     window.addEventListener("resize", () => applyUIScale(calcAutoScale()), { passive: true });
 
+    /* ===== Firebase ===== */
     const firebaseConfig = {
       apiKey: "AIzaSyCGyH-yVAgQU4iJ1tIz3cpWiWa65BdMsJ8",
       authDomain: "inventariskomputer.firebaseapp.com",
@@ -546,6 +548,7 @@
 
     function $(id) { return document.getElementById(id); }
 
+    /* ===== KATEGORI UNIQUE (anti duplikat 100%) ===== */
     function normalizeKategoriKey(s) {
       return String(s || "")
         .trim()
@@ -553,39 +556,70 @@
         .replace(/\s+/g, " ");
     }
 
-    function tdText(v) {
-      const td = document.createElement("td");
-      td.textContent = (v === undefined || v === null) ? "" : String(v);
-      return td;
-    }
-
-    function makeBtn(text, className, onClick) {
-      const b = document.createElement("button");
-      b.className = className;
-      b.textContent = text;
-      b.type = "button";
-      b.addEventListener("click", onClick);
-      return b;
-    }
-
     async function claimKategoriKey(namaKey, kategoriId) {
       const ref = kategoriKeysRef.child(namaKey);
       const tx = await ref.transaction(current => current === null ? kategoriId : current);
-      const val = tx.snapshot.val();
-      return { committed: tx.committed, owner: val };
+      const owner = tx.snapshot.val();
+      return { committed: tx.committed, owner };
+    }
+
+    let kategoriKeysSynced = false;
+
+    async function syncKategoriKeysFromExistingKategori() {
+      if (kategoriKeysSynced) return;
+      if (role !== "admin") return;
+
+      const snap = await kategoriRef.once("value");
+      const data = snap.val() || {};
+
+      const updates = {};
+      const duplicates = [];
+
+      for (const [id, v] of Object.entries(data)) {
+        const nama = (v && v.nama) ? String(v.nama).trim() : "";
+        if (!nama) continue;
+
+        const namaKey = (v && v.namaKey) ? String(v.namaKey) : normalizeKategoriKey(nama);
+
+        if (!v.namaKey || v.namaKey !== namaKey) {
+          updates["kategori/" + id + "/namaKey"] = namaKey;
+        }
+
+        const res = await claimKategoriKey(namaKey, id);
+        if (res.owner !== id) {
+          duplicates.push({ id, nama, namaKey, owner: res.owner });
+        }
+      }
+
+      if (Object.keys(updates).length) await db.ref().update(updates);
+
+      kategoriKeysSynced = true;
+
+      if (duplicates.length) {
+        console.warn("DUPLICATE KATEGORI DETECTED:", duplicates);
+        alert(
+          "PERINGATAN:\nTerdeteksi kategori duplikat dari data lama.\n" +
+          "Silakan rapikan (rename/hapus) pada menu KELOLA KATEGORI."
+        );
+      }
     }
 
     async function ensureDefaultKategoriIfEmpty() {
-      const defaults = ["Laptop", "PC Desktop", "Monitor", "Printer", "Aksesoris", "Jaringan", "Lainnya"];
+      if (role !== "admin") return;
+
+      await syncKategoriKeysFromExistingKategori();
+
       const snap = await kategoriRef.once("value");
       if (snap.exists() && Object.keys(snap.val() || {}).length > 0) return;
+
+      const defaults = ["Laptop", "PC Desktop", "Monitor", "Printer", "Aksesoris", "Jaringan", "Lainnya"];
 
       for (const nama of defaults) {
         const namaKey = normalizeKategoriKey(nama);
         const newId = kategoriRef.push().key;
 
         const claim = await claimKategoriKey(namaKey, newId);
-        if (!claim.committed || claim.owner !== newId) continue;
+        if (claim.owner !== newId) continue;
 
         try {
           await kategoriRef.child(newId).set({
@@ -601,6 +635,23 @@
       }
     }
 
+    /* ===== UI helpers ===== */
+    function tdText(v) {
+      const td = document.createElement("td");
+      td.textContent = (v === undefined || v === null) ? "" : String(v);
+      return td;
+    }
+
+    function makeBtn(text, className, onClick) {
+      const b = document.createElement("button");
+      b.className = className;
+      b.textContent = text;
+      b.type = "button";
+      b.addEventListener("click", onClick);
+      return b;
+    }
+
+    /* ===== routing/menu ===== */
     function setActiveMenu(pageId) {
       document.querySelectorAll(".menu-item").forEach(m => m.classList.remove("active"));
       const el = document.querySelector('.menu-item[data-page="' + pageId + '"]');
@@ -635,6 +686,7 @@
       });
     }
 
+    /* ===== kategori dropdown/table ===== */
     async function loadKategoriDropdown() {
       const select = $("kategori");
       const editSelect = $("editKategori");
@@ -720,6 +772,7 @@
       kategoriRef.on("value", kategoriTableHandler);
     }
 
+    /* ===== inventaris table ===== */
     function startInventarisListener() {
       const tbody = $("tableBody");
       if (!tbody) return;
@@ -788,19 +841,21 @@
       inventarisRef.on("value", inventarisHandler);
     }
 
+    /* ===== kategori CRUD (unique-safe) ===== */
     async function addKategori() {
       if (role !== "admin") return alert("ADMIN ONLY");
+
+      await syncKategoriKeysFromExistingKategori();
 
       const raw = ($("namaKategoriBaru").value || "");
       const nama = String(raw).trim();
       if (!nama) return alert("ISI NAMA KATEGORI!");
 
       const namaKey = normalizeKategoriKey(nama);
-
       const newId = kategoriRef.push().key;
 
       const claim = await claimKategoriKey(namaKey, newId);
-      if (!claim.committed || claim.owner !== newId) {
+      if (claim.owner !== newId) {
         alert("KATEGORI SUDAH ADA (DUPLIKAT)!");
         return;
       }
@@ -827,6 +882,8 @@
     async function editKategori(id, namaSaatIni) {
       if (role !== "admin") return;
 
+      await syncKategoriKeysFromExistingKategori();
+
       const input = prompt("EDIT NAMA KATEGORI:", namaSaatIni);
       if (input === null) return;
 
@@ -837,7 +894,7 @@
       if (!snap.exists()) return alert("KATEGORI TIDAK DITEMUKAN!");
 
       const old = snap.val() || {};
-      const oldKey = old.namaKey || normalizeKategoriKey(old.nama || namaSaatIni);
+      const oldKey = old.namaKey || normalizeKategoriKey(old.nama || namaSaatIni || "");
       const newKey = normalizeKategoriKey(nama);
 
       if (newKey === oldKey) {
@@ -848,7 +905,7 @@
       }
 
       const claim = await claimKategoriKey(newKey, id);
-      if (!claim.committed || claim.owner !== id) {
+      if (claim.owner !== id) {
         alert("NAMA KATEGORI SUDAH ADA (DUPLIKAT)!");
         return;
       }
@@ -857,7 +914,7 @@
         const updates = {};
         updates["kategori/" + id + "/nama"] = nama;
         updates["kategori/" + id + "/namaKey"] = newKey;
-        updates["kategoriKeys/" + oldKey] = null;
+        if (oldKey) updates["kategoriKeys/" + oldKey] = null;
         await db.ref().update(updates);
       } catch (e) {
         const cur = (await kategoriKeysRef.child(newKey).once("value")).val();
@@ -872,6 +929,8 @@
 
     async function deleteKategori(id, nama) {
       if (role !== "admin") return;
+
+      await syncKategoriKeysFromExistingKategori();
 
       const ok = confirm("YAKIN HAPUS KATEGORI INI?\n\n" + (nama || ""));
       if (!ok) return;
@@ -892,6 +951,7 @@
       loadKategoriDropdown();
     }
 
+    /* ===== inventaris add/edit ===== */
     async function openEditModal(key, data) {
       if (role !== "admin") return;
       currentEditKey = key;
@@ -962,6 +1022,7 @@
       showPage("assets");
     }
 
+    /* ===== autohide user info + footer show-at-bottom ===== */
     const scrollUI = {
       inited: false,
       ticking: false,
@@ -1032,6 +1093,7 @@
       requestAnimationFrame(scrollUIUpdate);
     }
 
+    /* ===== Auth gate + role gate ===== */
     auth.onAuthStateChanged(async (u) => {
       if (!u) { location.href = "login.html"; return; }
       if (!u.emailVerified) { await auth.signOut(); location.href = "login.html?msg=verify"; return; }
@@ -1053,6 +1115,8 @@
         $("menuAdd").style.display = "block";
         $("aksiHeader").style.display = "table-cell";
         $("kelolaKategoriSection").style.display = "block";
+
+        await syncKategoriKeysFromExistingKategori();
         await ensureDefaultKategoriIfEmpty();
       } else {
         $("menuAdd").style.display = "none";
@@ -1066,12 +1130,11 @@
       showPage("home");
     });
 
+    /* expose for HTML onclick */
     window.closeEditModal = closeEditModal;
     window.saveEditData = saveEditData;
     window.saveData = saveData;
     window.addKategori = addKategori;
-    window.editKategori = editKategori;
-    window.deleteKategori = deleteKategori;
   </script>
 </body>
 </html>
