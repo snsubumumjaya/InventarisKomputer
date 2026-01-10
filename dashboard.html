@@ -31,13 +31,13 @@
       --ui-top: clamp(14px, 2.2vw, 20px);
       --ui-right: clamp(14px, 2.2vw, 20px);
 
-      --uiScale: 0.67;
+      --uiScale: 0.90;
 
       --zoomInv: 1;
 
       /* NEW: font settings for tables */
       --table-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      --table-value-weight: 300;  /* value ikut gaya header (lebih clean) */
+      --table-value-weight: 500;  /* value ikut gaya header (lebih clean) */
       --table-head-weight: 900;
     }
 
@@ -529,7 +529,7 @@
       const sW = physicalW / targetW;
       const sH = physicalH / targetH;
       const s = Math.min(0.95, sW, sH);
-      return Number(Math.max(0.55, s).toFixed(3));
+      return Number(Math.max(0.85, s).toFixed(3));
     }
     applyUIScale(calcAutoScale());
     window.addEventListener("resize", () => applyUIScale(calcAutoScale()), { passive: true });
@@ -539,7 +539,7 @@
     function updateZoomInv() {
       const dpr = window.devicePixelRatio || 1;
       const inv = __zoomBaseDpr / dpr;
-      const clamped = Math.max(0.90, Math.min(1, inv));
+      const clamped = Math.max(0.75, Math.min(1.35, inv));
       document.documentElement.style.setProperty("--zoomInv", clamped.toFixed(3));
     }
     window.addEventListener("resize", updateZoomInv, { passive: true });
