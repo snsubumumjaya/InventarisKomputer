@@ -17,7 +17,7 @@
       background:#fff;
       color:#000;
       font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
-      overflow:hidden; /* scroll hanya di .main */
+      overflow:hidden;
     }
 
     body::before{
@@ -92,7 +92,6 @@
     }
     .menu-item:hover::after,.menu-item.active::after{width:40px}
 
-    /* MAIN: area yang scroll */
     .main{
       position:fixed;
       left:300px;
@@ -101,11 +100,10 @@
       bottom:0;
       overflow-y:auto;
       overflow-x:hidden;
-      padding:0 100px 140px; /* padding top 0 supaya topbar sticky bisa nempel atas */
+      padding:0 100px 140px;
       z-index:1;
     }
 
-    /* TOPBAR sticky untuk user info (pojok kanan atas) */
     .topbar{
       position:sticky;
       top:0;
@@ -113,11 +111,11 @@
       display:flex;
       justify-content:flex-end;
       padding:20px 0;
-      pointer-events:none; /* area topbar tidak ganggu klik konten */
+      pointer-events:none;
     }
 
     .user-info{
-      pointer-events:auto; /* tombol logout tetap bisa diklik */
+      pointer-events:auto;
       background:#fff;
       padding:16px 28px;
       border:6px solid #000;
@@ -148,7 +146,31 @@
     .logout-btn:hover{background:#000;color:#fff}
 
     .page-wrap{
-      padding:40px 0 0; /* jarak dari topbar */
+      padding:40px 0 0;
+    }
+
+    .bottombar{
+      position:sticky;
+      bottom:0;
+      z-index:4500;
+      display:flex;
+      justify-content:center;
+      padding:0 0 15px;
+      pointer-events:none;
+    }
+
+    .footer{
+      background:transparent;
+      border:none;
+      padding:0;
+      font-size:14px;
+      letter-spacing:8px;
+      font-weight:900;
+      color:#000;
+      opacity:0;
+      transform:translateY(12px);
+      transition:opacity .15s linear, transform .15s linear;
+      will-change:opacity, transform;
     }
 
     .content{display:none}
@@ -317,6 +339,10 @@
           </tbody>
         </table>
       </div>
+    </div>
+
+    <div class="bottombar">
+      <div class="footer" id="footerBox">SN SUB UMUM – INTERNAL INVENTORY SYSTEM 2026</div>
     </div>
   </div>
 
@@ -675,74 +701,78 @@
       loadKategoriDropdown();
     }
 
-    let uiAutoHideInited = false;
-    let uiAutoHideEnabled = false;
+    const scrollUI = {
+      inited: false,
+      ticking: false,
+      userHide: false,
+      main: null,
+      userBox: null,
+      footerBox: null
+    };
 
-    function initUserInfoAutoHide() {
-      if (uiAutoHideInited) return;
-      uiAutoHideInited = true;
+    function initScrollUI() {
+      if (scrollUI.inited) return;
 
-      const main = document.getElementById("scrollArea");
-      const box = document.getElementById("userInfoBox");
-      if (!main || !box) return;
+      scrollUI.main = document.getElementById("scrollArea");
+      scrollUI.userBox = document.getElementById("userInfoBox");
+      scrollUI.footerBox = document.getElementById("footerBox");
 
-      const HIDE_AT = 300;
+      if (!scrollUI.main) return;
 
-      let ticking = false;
+      scrollUI.inited = true;
 
-      function applyState() {
-        if (!uiAutoHideEnabled) {
-          box.style.opacity = "1";
-          box.style.transform = "translateY(0px)";
-          box.style.pointerEvents = "auto";
-          ticking = false;
-          return;
+      scrollUI.main.addEventListener("scroll", () => {
+        if (!scrollUI.ticking) {
+          scrollUI.ticking = true;
+          requestAnimationFrame(scrollUIUpdate);
         }
+      }, { passive: true });
 
-        const t = Math.max(0, Math.min(HIDE_AT, main.scrollTop));
-        const p = 1 - (t / HIDE_AT);
-        const shift = t * 0.9;
+      scrollUIUpdate();
+    }
 
-        box.style.opacity = String(p);
-        box.style.transform = "translateY(" + (-shift) + "px)";
-        box.style.pointerEvents = (p < 0.05) ? "none" : "auto";
+    function scrollUIUpdate() {
+      const main = scrollUI.main;
+      const userBox = scrollUI.userBox;
+      const footerBox = scrollUI.footerBox;
 
-        ticking = false;
+      if (!main) {
+        scrollUI.ticking = false;
+        return;
       }
 
-      function onScroll() {
-        if (!ticking) {
-          ticking = true;
-          requestAnimationFrame(applyState);
+      if (userBox) {
+        if (scrollUI.userHide) {
+          const HIDE_AT = 500;
+          const t = Math.max(0, Math.min(HIDE_AT, main.scrollTop));
+          const p = 1 - (t / HIDE_AT);
+          const shift = t * 0.9;
+
+          userBox.style.opacity = String(p);
+          userBox.style.transform = "translateY(" + (-shift) + "px)";
+          userBox.style.pointerEvents = (p < 0.05) ? "none" : "auto";
+        } else {
+          userBox.style.opacity = "1";
+          userBox.style.transform = "translateY(0px)";
+          userBox.style.pointerEvents = "auto";
         }
       }
 
-      main.addEventListener("scroll", onScroll, { passive: true });
-      applyState();
+      if (footerBox) {
+        const distToBottom = (main.scrollHeight - main.clientHeight) - main.scrollTop;
+        const show = distToBottom <= 4;
+
+        footerBox.style.opacity = show ? "1" : "0";
+        footerBox.style.transform = show ? "translateY(0px)" : "translateY(12px)";
+      }
+
+      scrollUI.ticking = false;
     }
 
     function setUserInfoAutoHide(enabled) {
-      uiAutoHideEnabled = !!enabled;
-      initUserInfoAutoHide();
-      const main = document.getElementById("scrollArea");
-      if (main) {
-        requestAnimationFrame(() => {
-          const box = document.getElementById("userInfoBox");
-          if (!box) return;
-          if (!uiAutoHideEnabled) {
-            box.style.opacity = "1";
-            box.style.transform = "translateY(0px)";
-            box.style.pointerEvents = "auto";
-          } else {
-            const t = Math.max(0, Math.min(180, main.scrollTop));
-            const p = 1 - (t / 180);
-            const shift = t * 0.9;
-            box.style.opacity = String(p);
-            box.style.transform = "translateY(" + (-shift) + "px)";
-            box.style.pointerEvents = (p < 0.05) ? "none" : "auto";
-          }
-        });
-      }
+      scrollUI.userHide = !!enabled;
+      initScrollUI();
+      requestAnimationFrame(scrollUIUpdate);
     }
 
     auth.onAuthStateChanged(async (u) => {
