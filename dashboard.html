@@ -31,7 +31,7 @@
       --ui-top: clamp(14px, 2.2vw, 20px);
       --ui-right: clamp(14px, 2.2vw, 20px);
 
-      --uiScale: 0.67;
+      --uiScale: 0.90;
     }
 
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -512,8 +512,8 @@
       const sW = physicalW / targetW;
       const sH = physicalH / targetH;
 
-      const s = Math.min(0.67, sW, sH);
-      return Number(Math.max(0.55, s).toFixed(3));
+      const s = Math.min(0.85, sW, sH);
+      return Number(Math.max(0.95, s).toFixed(3));
     }
 
     applyUIScale(calcAutoScale());
