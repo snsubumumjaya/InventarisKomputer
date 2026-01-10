@@ -17,7 +17,10 @@
       background:#fff;
       color:#000;
       font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
-      overflow:hidden; /* yang scroll hanya .main */
+      overflow:hidden; /* halaman tidak scroll: yang scroll hanya .main */
+      transform:none !important;
+      filter:none !important;
+      perspective:none !important;
     }
 
     body::before{
@@ -53,6 +56,7 @@
       padding:60px 50px;
       z-index:900;
       box-shadow:50px 0 80px rgba(0,0,0,0.4);
+      transform:none !important;
     }
     .logo{margin-bottom:120px}
     .logo h1{
@@ -90,12 +94,23 @@
     }
     .menu-item:hover::after,.menu-item.active::after{width:40px}
 
-    /* FIX: benar-benar menempel di pojok kanan atas viewport */
+    /* Overlay FIXED (kebal terhadap scroll container) */
+    #fixedLayer{
+      position:fixed !important;
+      inset:0;
+      z-index:3000;
+      pointer-events:none; /* default tidak ganggu klik konten */
+      transform:none !important;
+      filter:none !important;
+      perspective:none !important;
+    }
+
+    /* USER INFO: nempel pojok kanan atas */
     .user-info{
-      position:fixed;
+      position:absolute !important;
       top:20px;
       right:20px;
-      z-index:2000;
+      pointer-events:auto; /* biar tombol logout bisa diklik */
       background:#fff;
       padding:16px 28px;
       border:6px solid #000;
@@ -120,22 +135,21 @@
     }
     .logout-btn:hover{background:#000;color:#fff}
 
-    /* FIX: footer menempel bawah viewport, transparan (tanpa box) */
+    /* FOOTER: nempel bawah, transparan (tanpa box) */
     .footer{
-      position:fixed;
-      left:300px;   /* biar tidak nabrak sidebar */
+      position:absolute !important;
+      left:300px;   /* supaya tidak masuk area sidebar */
       right:0;
       bottom:15px;
-      z-index:1500;
       text-align:center;
       font-size:14px;
       letter-spacing:8px;
       font-weight:900;
       color:#000;
-      background:transparent; /* transparan */
-      border:none;            /* no box */
-      padding:0;              /* no box */
-      pointer-events:none;    /* biar tidak ganggu klik konten */
+      background:transparent;
+      border:none;
+      padding:0;
+      pointer-events:none; /* hanya teks */
     }
 
     /* Konten utama yang scroll */
@@ -147,7 +161,9 @@
       bottom:0;
       overflow-y:auto;
       overflow-x:hidden;
-      padding:120px 100px 110px; /* top: hindari ketutup user-info, bottom: hindari ketutup footer */
+      padding:140px 100px 110px; /* top aman dari user-info, bottom aman dari footer */
+      z-index:1;
+      transform:none !important;
     }
 
     .content{display:none}
@@ -235,9 +251,14 @@
     <div class="menu-item" data-page="rusak">RUSAK / HILANG</div>
   </div>
 
-  <div class="user-info">
-    <span id="userInfo">LOADING...</span>
-    <button class="logout-btn" onclick="firebase.auth().signOut().then(()=>location.href='login.html')">LOGOUT</button>
+  <!-- FIXED LAYER (di luar .main) -->
+  <div id="fixedLayer">
+    <div class="user-info">
+      <span id="userInfo">LOADING...</span>
+      <button class="logout-btn" onclick="firebase.auth().signOut().then(()=>location.href='login.html')">LOGOUT</button>
+    </div>
+
+    <div class="footer">SN SUB UMUM – INTERNAL INVENTORY SYSTEM 2026</div>
   </div>
 
   <div class="main">
@@ -341,8 +362,6 @@
       </table>
     </div>
   </div>
-
-  <div class="footer">SN SUB UMUM – INTERNAL INVENTORY SYSTEM 2026</div>
 
   <div class="modal" id="editModal">
     <div class="modal-box">
