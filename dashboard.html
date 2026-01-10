@@ -17,7 +17,7 @@
       background:#fff;
       color:#000;
       font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
-      overflow:hidden; /* body tidak scroll */
+      overflow:hidden;
     }
 
     body::before{
@@ -92,7 +92,6 @@
     }
     .menu-item:hover::after,.menu-item.active::after{width:40px}
 
-    /* PANEL KANAN: topbar + scroll + bottombar */
     .main{
       position:fixed;
       left:300px;
@@ -105,7 +104,7 @@
       z-index:1;
     }
 
-    /* TOPBAR (tidak ikut scroll) */
+    /* TOPBAR transparan (tidak ada box/background) */
     .topbar{
       flex:0 0 auto;
       display:flex;
@@ -113,11 +112,15 @@
       padding:20px 100px 10px;
       pointer-events:none;
       z-index:5000;
+      background:transparent;
+      border:none;
+      box-shadow:none;
+      backdrop-filter:none;
     }
 
     .user-info{
       pointer-events:auto;
-      background:#fff;
+      background:rgba(255,255,255,0.92);
       padding:16px 28px;
       border:6px solid #000;
       font-size:13px;
@@ -146,30 +149,33 @@
     }
     .logout-btn:hover{background:#000;color:#fff}
 
-    /* AREA SCROLL (hanya bagian ini yang scroll) */
     #scrollArea{
       flex:1 1 auto;
       overflow-y:auto;
       overflow-x:hidden;
-      padding:0 100px 40px; /* padding bawah kecil, karena footer bukan overlay */
+      padding:0 100px 40px;
     }
 
     .page-wrap{
       padding:40px 0 0;
     }
 
-    /* BOTTOMBAR (tidak ikut scroll) */
+    /* BOTTOMBAR transparan */
     .bottombar{
       flex:0 0 auto;
       display:flex;
       justify-content:center;
-      padding:0 0 6px; /* lebih rendah (lebih dekat ke bawah) */
+      padding:0 0 6px;
       pointer-events:none;
       z-index:4500;
+      background:transparent;
+      border:none;
+      box-shadow:none;
+      backdrop-filter:none;
     }
 
     .footer{
-      background:transparent; /* transparan, hanya teks */
+      background:transparent;
       border:none;
       padding:0;
       font-size:14px;
@@ -177,7 +183,6 @@
       font-weight:900;
       line-height:1;
       color:#000;
-
       opacity:0;
       transform:translateY(8px);
       transition:opacity .15s linear, transform .15s linear;
@@ -763,7 +768,7 @@
 
       if (userBox) {
         if (scrollUI.userHide) {
-          const HIDE_AT = 210; /* sesuai setting kamu */
+          const HIDE_AT = 210;
           const t = Math.max(0, Math.min(HIDE_AT, scroller.scrollTop));
           const p = 1 - (t / HIDE_AT);
           const shift = t * 0.9;
@@ -780,7 +785,7 @@
 
       if (footerBox) {
         const distToBottom = (scroller.scrollHeight - scroller.clientHeight) - scroller.scrollTop;
-        const show = distToBottom <= 2; /* tampil hanya saat benar2 bawah */
+        const show = distToBottom <= 2;
 
         footerBox.style.opacity = show ? "1" : "0";
         footerBox.style.transform = show ? "translateY(0px)" : "translateY(8px)";
