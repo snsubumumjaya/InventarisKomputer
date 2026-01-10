@@ -528,7 +528,7 @@
       const targetW = 1920, targetH = 1080;
       const sW = physicalW / targetW;
       const sH = physicalH / targetH;
-      const s = Math.min(0.67, sW, sH);
+      const s = Math.min(0.95, sW, sH);
       return Number(Math.max(0.55, s).toFixed(3));
     }
     applyUIScale(calcAutoScale());
@@ -539,7 +539,7 @@
     function updateZoomInv() {
       const dpr = window.devicePixelRatio || 1;
       const inv = __zoomBaseDpr / dpr;
-      const clamped = Math.max(0.75, Math.min(1.35, inv));
+      const clamped = Math.max(0.90, Math.min(1, inv));
       document.documentElement.style.setProperty("--zoomInv", clamped.toFixed(3));
     }
     window.addEventListener("resize", updateZoomInv, { passive: true });
