@@ -31,10 +31,14 @@
       --ui-top: clamp(14px, 2.2vw, 20px);
       --ui-right: clamp(14px, 2.2vw, 20px);
 
-      --uiScale: 0.90;
+      --uiScale: 0.67;
 
-      /* inverse zoom factor (zoom out => tabel membesar, zoom in => mengecil) */
       --zoomInv: 1;
+
+      /* NEW: font settings for tables */
+      --table-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --table-value-weight: 500;  /* value ikut gaya header (lebih clean) */
+      --table-head-weight: 900;
     }
 
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -71,7 +75,6 @@
       pointer-events:none;
     }
 
-    /* UI SCALE wrapper */
     #app{
       position:relative;
       transform: scale(var(--uiScale));
@@ -192,9 +195,6 @@
       justify-content:center;
       pointer-events:none;
       z-index:4500;
-      background:transparent;
-      border:none;
-      box-shadow:none;
     }
     .footer{
       background:transparent;
@@ -223,35 +223,38 @@
       margin-bottom:clamp(45px, 6vw, 80px);
     }
 
-    /* ===== TABLE (centered + zoom-inverse responsive) ===== */
+    /* ===== TABLE typography upgrade ===== */
     table{
       width:100%;
-      table-layout:fixed; /* agar kolom stabil */
+      table-layout:fixed;
       border-collapse:separate;
       border-spacing:0 calc(var(--row-gap) * var(--zoomInv));
+      font-family:var(--table-font); /* NEW: values ikut font header */
     }
     th, td{
-      text-align:center;        /* center semua isi kolom */
-      vertical-align:middle;    /* center vertikal */
-      word-break:break-word;    /* supaya tidak keluar kolom */
+      text-align:center;
+      vertical-align:middle;
+      word-break:break-word;
     }
     th{
-      font-size: calc(clamp(10px, 1vw, 12px) * var(--zoomInv));
-      letter-spacing: calc(clamp(3px, 0.9vw, 6px) * var(--zoomInv));
+      /* NEW: header bigger than values */
+      font-size: calc(clamp(12px, 1.15vw, 14px) * var(--zoomInv));
+      letter-spacing: calc(clamp(4px, 1.0vw, 7px) * var(--zoomInv));
+      font-weight: var(--table-head-weight);
       text-transform:uppercase;
-      opacity:0.7;
-      padding-bottom: calc(20px * var(--zoomInv));
+      opacity:0.75;
+      padding-bottom: calc(22px * var(--zoomInv));
     }
     td{
-      font-size: calc(clamp(16px, 1.6vw, 18px) * var(--zoomInv));
-      font-weight:400;
+      /* NEW: values use same font-family as table and smaller than header */
+      font-size: calc(clamp(15px, 1.45vw, 17px) * var(--zoomInv));
+      font-weight: var(--table-value-weight);
       padding: calc(20px * var(--zoomInv)) 0;
       border-bottom-style: solid;
       border-bottom-color: #000;
       border-bottom-width: calc(var(--b-mid) * var(--zoomInv));
     }
 
-    /* action cell: button selalu tepat di tengah kolom */
     td.action-cell{
       padding: calc(14px * var(--zoomInv)) 0;
     }
@@ -261,7 +264,6 @@
       align-items:center;
       gap:clamp(8px, 1.2vw, 14px);
     }
-    /* matikan margin default button di dalam tabel supaya benar2 center */
     td.action-cell .btn{ margin-right:0 !important; }
 
     .form-box{
@@ -270,7 +272,6 @@
       border:var(--b-strong) solid #000;
     }
 
-    /* center juga isi form tambah barang + edit modal */
     .form-box input,
     .form-box select,
     .form-box textarea{
@@ -282,7 +283,9 @@
       font-size:var(--input-font);
       margin:clamp(22px, 4vw, 40px) 0;
       outline:none;
-      text-align:center; /* NEW */
+      text-align:center;
+      font-family:var(--table-font); /* NEW: input value mengikuti font tabel */
+      font-weight:600;
     }
 
     .add-layout{
@@ -314,10 +317,9 @@
       font-size:clamp(20px, 2.2vw, 26px);
       margin-bottom:clamp(18px, 2.6vw, 30px);
       letter-spacing:-2px;
-      text-align:center; /* NEW */
+      text-align:center;
+      font-weight:900;
     }
-    .right-kelola-kategori .tambah-kategori-controls{margin-bottom:20px;}
-    .right-kelola-kategori table{flex:1;}
 
     .btn{
       padding:clamp(12px, 1.8vw, 16px) clamp(26px, 5vw, 55px);
@@ -330,6 +332,7 @@
       cursor:pointer;
       transition:.35s;
       margin-right:15px;
+      font-family:var(--table-font); /* NEW */
     }
     .btn:hover{background:#ff0000}
     .btn-small{
@@ -525,8 +528,8 @@
       const targetW = 1920, targetH = 1080;
       const sW = physicalW / targetW;
       const sH = physicalH / targetH;
-      const s = Math.min(0.95, sW, sH);
-      return Number(Math.max(0.85, s).toFixed(3));
+      const s = Math.min(0.67, sW, sH);
+      return Number(Math.max(0.55, s).toFixed(3));
     }
     applyUIScale(calcAutoScale());
     window.addEventListener("resize", () => applyUIScale(calcAutoScale()), { passive: true });
@@ -845,8 +848,8 @@
 
             wrap.appendChild(editB);
             wrap.appendChild(delB);
-
             actionTd.appendChild(wrap);
+
             tr.appendChild(actionTd);
           }
 
