@@ -14,13 +14,12 @@
 
     html,body{
       height:100%;
+      margin:0;
       background:#fff;
       color:#000;
       font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
-      overflow:hidden; /* halaman tidak scroll: yang scroll hanya .main */
-      transform:none !important;
-      filter:none !important;
-      perspective:none !important;
+      overflow-x:hidden;
+      overflow-y:auto; /* scroll normal di body */
     }
 
     body::before{
@@ -49,14 +48,15 @@
 
     .sidebar{
       position:fixed;
-      left:0; top:0; bottom:0;
+      left:0;
+      top:0;
+      bottom:0;
       width:300px;
       background:#000;
       color:#fff;
       padding:60px 50px;
       z-index:900;
       box-shadow:50px 0 80px rgba(0,0,0,0.4);
-      transform:none !important;
     }
     .logo{margin-bottom:120px}
     .logo h1{
@@ -87,30 +87,21 @@
     .menu-item::after{
       content:"";
       position:absolute;
-      left:0; bottom:0;
-      width:0; height:3px;
+      left:0;
+      bottom:0;
+      width:0;
+      height:3px;
       background:#fff;
       transition:all .35s;
     }
     .menu-item:hover::after,.menu-item.active::after{width:40px}
 
-    /* Overlay FIXED (kebal terhadap scroll container) */
-    #fixedLayer{
-      position:fixed !important;
-      inset:0;
-      z-index:3000;
-      pointer-events:none; /* default tidak ganggu klik konten */
-      transform:none !important;
-      filter:none !important;
-      perspective:none !important;
-    }
-
-    /* USER INFO: nempel pojok kanan atas */
+    /* FIXED USER INFO: benar-benar nempel di viewport */
     .user-info{
-      position:absolute !important;
+      position:fixed !important;
       top:20px;
       right:20px;
-      pointer-events:auto; /* biar tombol logout bisa diklik */
+      z-index:5000;
       background:#fff;
       padding:16px 28px;
       border:6px solid #000;
@@ -120,7 +111,8 @@
       display:flex;
       align-items:center;
       gap:24px;
-      max-width:calc(100vw - 40px);
+      transform:none !important;
+      filter:none !important;
     }
     .logout-btn{
       background:none;
@@ -135,12 +127,13 @@
     }
     .logout-btn:hover{background:#000;color:#fff}
 
-    /* FOOTER: nempel bawah, transparan (tanpa box) */
+    /* FIXED FOOTER: nempel bawah viewport, transparan (hanya teks) */
     .footer{
-      position:absolute !important;
-      left:300px;   /* supaya tidak masuk area sidebar */
+      position:fixed !important;
+      left:300px;
       right:0;
       bottom:15px;
+      z-index:4000;
       text-align:center;
       font-size:14px;
       letter-spacing:8px;
@@ -149,25 +142,21 @@
       background:transparent;
       border:none;
       padding:0;
-      pointer-events:none; /* hanya teks */
+      pointer-events:none;
+      transform:none !important;
+      filter:none !important;
     }
 
-    /* Konten utama yang scroll */
+    /* MAIN CONTENT (scroll mengikuti body) */
     .main{
-      position:fixed;
-      left:300px;
-      top:0;
-      right:0;
-      bottom:0;
-      overflow-y:auto;
-      overflow-x:hidden;
-      padding:140px 100px 110px; /* top aman dari user-info, bottom aman dari footer */
-      z-index:1;
-      transform:none !important;
+      margin-left:300px;
+      padding:140px 100px 180px; /* bottom besar supaya konten tidak ketutup footer */
+      min-height:100vh;
     }
 
     .content{display:none}
     .content.active{display:block}
+
     h2{
       font-size:64px;
       font-weight:900;
@@ -181,7 +170,7 @@
     td{font-size:18px;font-weight:400;padding:20px 0;border-bottom:5px solid #000}
 
     .form-box{background:#fafafa;padding:60px 80px;border:8px solid #000;}
-    .form-box input, .form-box select, .form-box textarea{
+    .form-box input,.form-box select,.form-box textarea{
       width:100%;
       padding:20px 0;
       background:none;
@@ -201,7 +190,7 @@
     .right-kelola-kategori table{flex:1;}
     .right-kelola-kategori th{font-size:11px;letter-spacing:5px;}
     .right-kelola-kategori td{font-size:17px;}
-    .right-kelola-kategori td:last-child {display:flex;justify-content:center;align-items:center;gap:10px;height:100%;}
+    .right-kelola-kategori td:last-child{display:flex;justify-content:center;align-items:center;gap:10px;height:100%;}
 
     .btn{
       padding:16px 55px;
@@ -244,22 +233,20 @@
 <body>
   <div class="sidebar">
     <div class="logo"><h1>INVENTARIS<br>KOMPUTER</h1></div>
-
     <div class="menu-item active" data-page="home">HOME</div>
     <div class="menu-item" data-page="assets">SEMUA ASSET</div>
     <div class="menu-item" id="menuAdd" style="display:none" data-page="add">+ TAMBAH BARANG</div>
     <div class="menu-item" data-page="rusak">RUSAK / HILANG</div>
   </div>
 
-  <!-- FIXED LAYER (di luar .main) -->
-  <div id="fixedLayer">
-    <div class="user-info">
-      <span id="userInfo">LOADING...</span>
-      <button class="logout-btn" onclick="firebase.auth().signOut().then(()=>location.href='login.html')">LOGOUT</button>
-    </div>
-
-    <div class="footer">SN SUB UMUM – INTERNAL INVENTORY SYSTEM 2026</div>
+  <!-- HARUS di luar .main -->
+  <div class="user-info">
+    <span id="userInfo">LOADING...</span>
+    <button class="logout-btn" onclick="firebase.auth().signOut().then(()=>location.href='login.html')">LOGOUT</button>
   </div>
+
+  <!-- HARUS di luar .main -->
+  <div class="footer">SN SUB UMUM – INTERNAL INVENTORY SYSTEM 2026</div>
 
   <div class="main">
     <div id="home" class="content active">
@@ -457,7 +444,7 @@
     }
 
     async function ensureDefaultKategoriIfEmpty() {
-      const defaultKategori = ["Laptop", "PC Desktop", "Monitor", "Printer", "Aksesoris", "Jaringan", "Lainnya"];
+      const defaultKategori = ["Laptop","PC Desktop","Monitor","Printer","Aksesoris","Jaringan","Lainnya"];
       const snap = await kategoriRef.once("value");
       const empty = !snap.exists() || Object.keys(snap.val() || {}).length === 0;
       if (!empty) return;
@@ -590,7 +577,6 @@
               if (!ok) return;
               await inventarisRef.child(key).remove();
             });
-
             delB.style.background = "#ff0000";
             delB.style.padding = "12px 30px";
             delB.style.fontSize = "13px";
@@ -598,7 +584,6 @@
 
             actionTd.appendChild(editB);
             actionTd.appendChild(delB);
-
             tr.appendChild(actionTd);
           }
 
@@ -761,6 +746,13 @@
       await loadKategoriDropdown();
       showPage("home");
     });
+
+    window.closeEditModal = closeEditModal;
+    window.saveEditData = saveEditData;
+    window.saveData = saveData;
+    window.addKategori = addKategori;
+    window.editKategori = editKategori;
+    window.deleteKategori = deleteKategori;
   </script>
 </body>
 </html>
