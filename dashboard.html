@@ -17,14 +17,14 @@
       background:#fff;
       color:#000;
       font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
-      overflow:hidden;
+      overflow:hidden; /* body tidak scroll */
     }
 
     body::before{
       content:"";
       position:fixed;
       inset:0;
-      z-index:-1;
+      z-index:-2;
       background:
         linear-gradient(rgba(0,0,0,.04) 1px,transparent 1px),
         linear-gradient(90deg,rgba(0,0,0,.04) 1px,transparent 1px);
@@ -92,26 +92,27 @@
     }
     .menu-item:hover::after,.menu-item.active::after{width:40px}
 
+    /* PANEL KANAN: topbar + scroll + bottombar */
     .main{
       position:fixed;
       left:300px;
       top:0;
       right:0;
       bottom:0;
-      overflow-y:auto;
-      overflow-x:hidden;
-      padding:0 100px 140px;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
       z-index:1;
     }
 
+    /* TOPBAR (tidak ikut scroll) */
     .topbar{
-      position:sticky;
-      top:0;
-      z-index:5000;
+      flex:0 0 auto;
       display:flex;
       justify-content:flex-end;
-      padding:20px 0;
+      padding:20px 100px 10px;
       pointer-events:none;
+      z-index:5000;
     }
 
     .user-info{
@@ -145,30 +146,40 @@
     }
     .logout-btn:hover{background:#000;color:#fff}
 
+    /* AREA SCROLL (hanya bagian ini yang scroll) */
+    #scrollArea{
+      flex:1 1 auto;
+      overflow-y:auto;
+      overflow-x:hidden;
+      padding:0 100px 40px; /* padding bawah kecil, karena footer bukan overlay */
+    }
+
     .page-wrap{
       padding:40px 0 0;
     }
 
+    /* BOTTOMBAR (tidak ikut scroll) */
     .bottombar{
-      position:sticky;
-      bottom:0;
-      z-index:4500;
+      flex:0 0 auto;
       display:flex;
       justify-content:center;
-      padding:0 0 15px;
+      padding:0 0 6px; /* lebih rendah (lebih dekat ke bawah) */
       pointer-events:none;
+      z-index:4500;
     }
 
     .footer{
-      background:transparent;
+      background:transparent; /* transparan, hanya teks */
       border:none;
       padding:0;
       font-size:14px;
       letter-spacing:8px;
       font-weight:900;
+      line-height:1;
       color:#000;
+
       opacity:0;
-      transform:translateY(12px);
+      transform:translateY(8px);
       transition:opacity .15s linear, transform .15s linear;
       will-change:opacity, transform;
     }
@@ -231,7 +242,7 @@
     <div class="menu-item" data-page="rusak">RUSAK / HILANG</div>
   </div>
 
-  <div class="main" id="scrollArea">
+  <div class="main">
     <div class="topbar">
       <div class="user-info" id="userInfoBox">
         <span id="userInfo">LOADING...</span>
@@ -239,105 +250,108 @@
       </div>
     </div>
 
-    <div class="page-wrap">
-      <div id="home" class="content active">
-        <h2>DASHBOARD<br>2026</h2>
-      </div>
+    <div id="scrollArea">
+      <div class="page-wrap">
+        <div id="home" class="content active">
+          <h2>DASHBOARD<br>2026</h2>
+        </div>
 
-      <div id="assets" class="content">
-        <h2>SEMUA<br>ASSET</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>KATEGORI</th>
-              <th>MERK</th>
-              <th>TIPE</th>
-              <th>SN</th>
-              <th>LOKASI</th>
-              <th>STATUS</th>
-              <th id="aksiHeader" style="display:none">ACTION</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody"></tbody>
-        </table>
-      </div>
+        <div id="assets" class="content">
+          <h2>SEMUA<br>ASSET</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>KATEGORI</th>
+                <th>MERK</th>
+                <th>TIPE</th>
+                <th>SN</th>
+                <th>LOKASI</th>
+                <th>STATUS</th>
+                <th id="aksiHeader" style="display:none">ACTION</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
 
-      <div id="add" class="content">
-        <h2>TAMBAH<br>BARANG</h2>
+        <div id="add" class="content">
+          <h2>TAMBAH<br>BARANG</h2>
 
-        <div class="add-layout">
-          <div class="left-tambah-barang">
-            <div class="form-box">
-              <select id="kategori"><option value="">— PILIH KATEGORI —</option></select>
-              <input type="text" id="merk" placeholder="MERK">
-              <input type="text" id="tipe" placeholder="TIPE / SPESIFIKASI">
-              <input type="text" id="sn" placeholder="SERIAL NUMBER (opsional)">
-              <input type="text" id="lokasi" placeholder="LOKASI / RUANGAN">
-              <select id="status">
-                <option value="OPERATIONAL">OPERATIONAL</option>
-                <option value="RUSAK">RUSAK</option>
-                <option value="PERBAIKAN">DALAM PERBAIKAN</option>
-                <option value="HILANG">HILANG</option>
-              </select>
-              <textarea id="keterangan" placeholder="KETERANGAN TAMBAHAN (opsional)"></textarea>
-              <br><br>
-              <button class="btn" onclick="saveData()">SIMPAN BARANG</button>
+          <div class="add-layout">
+            <div class="left-tambah-barang">
+              <div class="form-box">
+                <select id="kategori"><option value="">— PILIH KATEGORI —</option></select>
+                <input type="text" id="merk" placeholder="MERK">
+                <input type="text" id="tipe" placeholder="TIPE / SPESIFIKASI">
+                <input type="text" id="sn" placeholder="SERIAL NUMBER (opsional)">
+                <input type="text" id="lokasi" placeholder="LOKASI / RUANGAN">
+                <select id="status">
+                  <option value="OPERATIONAL">OPERATIONAL</option>
+                  <option value="RUSAK">RUSAK</option>
+                  <option value="PERBAIKAN">DALAM PERBAIKAN</option>
+                  <option value="HILANG">HILANG</option>
+                </select>
+                <textarea id="keterangan" placeholder="KETERANGAN TAMBAHAN (opsional)"></textarea>
+                <br><br>
+                <button class="btn" onclick="saveData()">SIMPAN BARANG</button>
+              </div>
             </div>
-          </div>
 
-          <div class="right-kelola-kategori" id="kelolaKategoriSection">
-            <div class="form-box">
-              <h3>KELOLA KATEGORI</h3>
+            <div class="right-kelola-kategori" id="kelolaKategoriSection">
+              <div class="form-box">
+                <h3>KELOLA KATEGORI</h3>
 
-              <div class="tambah-kategori-controls">
-                <div id="formTambahKategori" style="display:none;margin-bottom:30px;">
-                  <input type="text" id="namaKategoriBaru" placeholder="NAMA KATEGORI BARU">
-                  <br><br>
-                  <button class="btn btn-small" onclick="addKategori()">TAMBAH</button>
-                  <button class="btn btn-small" style="background:#999;" onclick="document.getElementById('formTambahKategori').style.display='none'">BATAL</button>
+                <div class="tambah-kategori-controls">
+                  <div id="formTambahKategori" style="display:none;margin-bottom:30px;">
+                    <input type="text" id="namaKategoriBaru" placeholder="NAMA KATEGORI BARU">
+                    <br><br>
+                    <button class="btn btn-small" onclick="addKategori()">TAMBAH</button>
+                    <button class="btn btn-small" style="background:#999;" onclick="document.getElementById('formTambahKategori').style.display='none'">BATAL</button>
+                  </div>
+
+                  <button class="btn btn-small" onclick="document.getElementById('formTambahKategori').style.display='block'; document.getElementById('namaKategoriBaru').focus();">+ TAMBAH BARU</button>
                 </div>
 
-                <button class="btn btn-small" onclick="document.getElementById('formTambahKategori').style.display='block'; document.getElementById('namaKategoriBaru').focus();">+ TAMBAH BARU</button>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>NO</th>
+                      <th>KATEGORI</th>
+                      <th>ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody id="kategoriTableBody"></tbody>
+                </table>
               </div>
-
-              <table>
-                <thead>
-                  <tr>
-                    <th>NO</th>
-                    <th>KATEGORI</th>
-                    <th>ACTION</th>
-                  </tr>
-                </thead>
-                <tbody id="kategoriTableBody"></tbody>
-              </table>
             </div>
           </div>
         </div>
-      </div>
 
-      <div id="rusak" class="content">
-        <h2>RUSAK /<br>HILANG</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>KATEGORI</th>
-              <th>MERK</th>
-              <th>TIPE</th>
-              <th>SN</th>
-              <th>LOKASI</th>
-              <th>STATUS</th>
-              <th>ACTION</th>
-            </tr>
-          </thead>
-          <tbody id="rusakTableBody">
-            <tr>
-              <td colspan="7" style="text-align:center;padding:180px;opacity:0.3;font-size:28px;">
-                BELUM ADA DATA RUSAK / HILANG<br>
-                <span style="font-size:16px;opacity:0.6;">(Fitur ini sedang dikembangkan)</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div id="rusak" class="content">
+          <h2>RUSAK /<br>HILANG</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>KATEGORI</th>
+                <th>MERK</th>
+                <th>TIPE</th>
+                <th>SN</th>
+                <th>LOKASI</th>
+                <th>STATUS</th>
+                <th>ACTION</th>
+              </tr>
+            </thead>
+            <tbody id="rusakTableBody">
+              <tr>
+                <td colspan="7" style="text-align:center;padding:180px;opacity:0.3;font-size:28px;">
+                  BELUM ADA DATA RUSAK / HILANG<br>
+                  <span style="font-size:16px;opacity:0.6;">(Fitur ini sedang dikembangkan)</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
       </div>
     </div>
 
@@ -433,6 +447,7 @@
       }
 
       setUserInfoAutoHide(pageId === "add");
+      requestAnimationFrame(scrollUIUpdate);
     }
 
     function wireMenu() {
@@ -506,6 +521,7 @@
           td.textContent = "BELUM ADA KATEGORI";
           tr.appendChild(td);
           tbody.appendChild(tr);
+          requestAnimationFrame(scrollUIUpdate);
           return;
         }
 
@@ -528,6 +544,8 @@
           tr.appendChild(actionTd);
           tbody.appendChild(tr);
         });
+
+        requestAnimationFrame(scrollUIUpdate);
       };
 
       kategoriRef.on("value", kategoriTableHandler);
@@ -553,6 +571,7 @@
           td.textContent = "NO DATA";
           tr.appendChild(td);
           tbody.appendChild(tr);
+          requestAnimationFrame(scrollUIUpdate);
           return;
         }
 
@@ -593,6 +612,8 @@
 
           tbody.appendChild(tr);
         });
+
+        requestAnimationFrame(scrollUIUpdate);
       };
 
       inventarisRef.on("value", inventarisHandler);
@@ -705,7 +726,7 @@
       inited: false,
       ticking: false,
       userHide: false,
-      main: null,
+      scroller: null,
       userBox: null,
       footerBox: null
     };
@@ -713,15 +734,14 @@
     function initScrollUI() {
       if (scrollUI.inited) return;
 
-      scrollUI.main = document.getElementById("scrollArea");
+      scrollUI.scroller = document.getElementById("scrollArea");
       scrollUI.userBox = document.getElementById("userInfoBox");
       scrollUI.footerBox = document.getElementById("footerBox");
 
-      if (!scrollUI.main) return;
-
+      if (!scrollUI.scroller) return;
       scrollUI.inited = true;
 
-      scrollUI.main.addEventListener("scroll", () => {
+      scrollUI.scroller.addEventListener("scroll", () => {
         if (!scrollUI.ticking) {
           scrollUI.ticking = true;
           requestAnimationFrame(scrollUIUpdate);
@@ -732,19 +752,19 @@
     }
 
     function scrollUIUpdate() {
-      const main = scrollUI.main;
+      const scroller = scrollUI.scroller;
       const userBox = scrollUI.userBox;
       const footerBox = scrollUI.footerBox;
 
-      if (!main) {
+      if (!scroller) {
         scrollUI.ticking = false;
         return;
       }
 
       if (userBox) {
         if (scrollUI.userHide) {
-          const HIDE_AT = 500;
-          const t = Math.max(0, Math.min(HIDE_AT, main.scrollTop));
+          const HIDE_AT = 210; /* sesuai setting kamu */
+          const t = Math.max(0, Math.min(HIDE_AT, scroller.scrollTop));
           const p = 1 - (t / HIDE_AT);
           const shift = t * 0.9;
 
@@ -759,11 +779,11 @@
       }
 
       if (footerBox) {
-        const distToBottom = (main.scrollHeight - main.clientHeight) - main.scrollTop;
-        const show = distToBottom <= 4;
+        const distToBottom = (scroller.scrollHeight - scroller.clientHeight) - scroller.scrollTop;
+        const show = distToBottom <= 2; /* tampil hanya saat benar2 bawah */
 
         footerBox.style.opacity = show ? "1" : "0";
-        footerBox.style.transform = show ? "translateY(0px)" : "translateY(12px)";
+        footerBox.style.transform = show ? "translateY(0px)" : "translateY(8px)";
       }
 
       scrollUI.ticking = false;
@@ -809,6 +829,7 @@
 
       wireMenu();
       await loadKategoriDropdown();
+      initScrollUI();
       showPage("home");
     });
 
